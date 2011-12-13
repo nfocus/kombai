@@ -1,0 +1,33 @@
+<html>
+	<head>
+		<title>Focus leak memory.</title>
+		<meta content="text/html; charset=utf-8" http-equiv="content-type">
+		<meta content="Javascript, Ajax, Cache Ajax, Animation, Drag drop, Database, MySQL" name="keywords">
+		<meta content="auto complete, suggestion" name="description">
+		</head>
+		<body onload="init(event);">
+			<script type="text/javascript" src="nfocus.js"></script>
+			text
+			<div class="kombai" id="k" style="width: 200px; padding: 4px; height: 100px; background: green;">
+				Focus leak memory
+				<div>
+					<input type="text" name="r1"  onkeydown='alert(1)'  value="radio1" onkeypress="alert(0)" onkeyup="alert(3)">
+				</div>
+			</div>
+			<div id='f'>title</div>
+			<a href="http://google.com">google.com</a>
+			<script type="text/javascript">
+				
+				function init(e) {
+					//console.log(Focus('nguyen').upper()('hai')('ba')(true));
+					//Focus( F('div').select('input').addClass('hai ba hai 4').addClass("hai") ).viewSource({align: 'right'});
+					F('#k').setOpacity(20).setDragable({}).viewSource({align: 'right'});
+					//F('a:c:').viewSource({align: 'right'});
+					//var k = document.getElementById("k");
+					//F(k).addEvent({click: function() {alert(2)}});
+				}
+				
+
+			</script>
+		</body>
+</html>
