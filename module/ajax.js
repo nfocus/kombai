@@ -129,6 +129,6 @@
 			}
 		};
 	
-		f(XMLHTTP).appendModule("utility");
+		f(XMLHTTP).addTo("utility");
 	})();
 	

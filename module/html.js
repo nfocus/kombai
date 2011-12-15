@@ -1,16 +1,17 @@
 	
+	
 	// html module;
 	(function() {
 		
 		var f = window[F_NAME],
-			currentWindow = f.getWindow(),
-			currentDocument = currentWindow.document,
+			copy = f.callFunction('copy'),
 			assert = f.callFunction('assert'),
-			copy = f.callFunction('copy');
+			currentWindow = f.getWindow(),
+			currentDocument = currentWindow.document;
 		
 		var event = {
 			getXY: function(XY) {
-				var src = this.source[0], point = {x: 0, y: 0};
+				var src = this.source, point = {x: 0, y: 0};
 				if (src.clientX !== undefined && src.clientX !== undefined) {
 					point = {
 						x: src.clientX + currentDocument.body.scrollLeft + currentDocument.documentElement.scrollLeft,
@@ -33,7 +34,7 @@
 			}
 		};
 		
-		f(event).appendModule("event");
+		f(event).addTo("event");
 		
 		var utility = {
 			isIE6: function() {
@@ -84,6 +85,7 @@
 				}
 				return true; 
 			},
+			
 			isMobile: function() {
 				return isExists(currentWindow.onorientationchange);
 			},
@@ -152,7 +154,7 @@
 				return new Date().getTime();
 			},
 			createId: function(src) {
-				return f(src || F_NAME)("-")(this.getNumber())("-")(this.getTime())();
+				return f()(src || F_NAME)("-")(this.getNumber())("-")(this.getTime())();
 			},
 			/*
 				Focus.createElement({
@@ -218,26 +220,26 @@
 			}
 		};
 		
-		f(utility).appendModule("utility");
+		f(utility).addTo("utility");
 		
 		var string = {
 			upper: function(opt) {
-				this.source[0] = this.source[0].toUpperCase();
-				return (opt === true) ? this.source[0] : this;
+				this.source = this.source.toUpperCase();
+				return (opt === true) ? this.source : this;
 			},
 			lower: function(opt) {
-				this.source[0] = this.source[0].toLowerCase();
-				return (opt === true) ? this.source[0] : this;
+				this.source = this.source.toLowerCase();
+				return (opt === true) ? this.source : this;
 			},
 			trim: function(opt) {
-				this.source[0] = this.source[0].replace(/^\s+|\s+$/g, "");
-				return (opt === true) ? this.source[0] : this;
+				this.source = this.source.replace(/^\s+|\s+$/g, "");
+				return (opt === true) ? this.source : this;
 			},
 			urlEncode: function(opt) {
-				return (opt === true) ? encodeURIComponent(this.source[0]) : this;
+				return (opt === true) ? encodeURIComponent(this.source) : this;
 			},
 			urlDecode: function(opt) {
-				return (opt === true) ? decodeURIComponent(this.source[0]) : this;
+				return (opt === true) ? decodeURIComponent(this.source) : this;
 			},
 			toRGB: function(opt) {
 				/*
@@ -245,7 +247,7 @@
 					example : Focus("green").toColor(true);
 					return: rgb(0, 128, 0);
 				*/
-				var colorName = this.source[0];
+				var colorName = this.source;
 				var table = f.createElement({
 					tagName: "table",
 					style: {
@@ -263,11 +265,11 @@
 				currentDocument.body.removeChild(table);
 				match = value.match(/^#(\w{2})(\w{2})(\w{2})/);
 				value = !match ? value : "rgb(" + parseInt(match[1], 16) + ", " + parseInt(match[2], 16) + ", " + parseInt(match[3], 16) + ")";
-				this.source = [value];
-				return (opt === true) ? this.source[0] : this;
+				this.source = value;
+				return (opt === true) ? this.source : this;
 			},
 			typeofStyle: function() {
-				var style = this.source[0];
+				var style = this.source;
 				switch (style) {
 					case "backgroundColor": case "color":
 						return "color";
@@ -282,55 +284,64 @@
 				}
 			}
 		};
-		f(string).appendModule("string");
+		f(string).addTo("string");
 		
 		var html = {
 			appendTo: function(element) {
-				this.update().each(function(eleNode) {
-					f(element).isElement() && element.appendChild(eleNode);
+				this.each(function() {
+					assert(element).isElement() && element.appendChild(this);
 				});
 				return this;
 			},
 			hasClass: function(classHass) {
 				var isHas = false;
-				this.update().each(function(eleNode) {
-					if ((eleNode.className.lastIndexOf(classHass) + 1)) {
-						isHas = true;
+				this.each(function() {
+					var classs = this.className.split(" "); 
+					for (var i = 0; i < classs.length; ++i) {
+						if (classs[i] == classHass) {
+							isHas = true;
+							break;
+						}
 					}
 				});
 				return isHas;
 			},
 			addClass: function(classAdd) {
-				this.update().each(function(eleNode) {
-					if (eleNode.className != "") {
-						eleNode.className = eleNode.className.replace(new RegExp(classAdd, "gi"), "");
-						eleNode.className += " " + classAdd;
+				this.each(function() {
+					if (this.className != "") {
+						this.className += " " + classAdd;
 					} else {
-						eleNode.className = classAdd;
+						this.className = classAdd;
 					}
 				});
 				return this;
 			},
 			setClass: function(classSet) {
-				this.update().each(function(e) {
-					e.className = classSet;
+				this.each(function() {
+					this.className = classSet;
 				});
 				return this;
 			},
 			removeClass: function(classRemove) {
-				this.update().each(function(e) {
-					if (f(classRemove).notExists()) {
-						e.className = "";
+				this.each(function() {
+					if (assert(classRemove).notExists()) {
+						this.className = "";
 					} else {
-						e.className = e.className.replace(new RegExp(classRemove, "gi"), "");
+						var classs = this.className.split(" ");
+						for (var i = 0; i < classs.length; ++i) { 
+							if (classs[i] == classRemove) {
+								classs[i] = "";
+							}
+						}
+						this.className = classs.join(" ");
 					}
 				});
 				return this;
 			},
 			getXY: function() {
 				var aE = [];
-				this.update().each(function(e) {
-					var x = 0, y = 0;
+				this.each(function() {
+					var x = 0, y = 0, e = this;
 					while (e) {
 						x += e.offsetLeft;
 						y += e.offsetTop;
@@ -345,8 +356,8 @@
 			},
 			getX: function() {
 				var aE = [];
-				this.update().each(function(e) {
-					var x = 0;
+				this.each(function() {
+					var x = 0, e = this;
 					while (e) {
 						x += e.offsetLeft;
 						e = e.offsetParent;
@@ -360,8 +371,8 @@
 			},
 			getY: function() {
 				var aE = [];
-				this.update().each(function(e) {
-					var y = 0;
+				this.each(function() {
+					var y = 0, e = this;
 					while (e) {
 						y += e.offsetTop;
 						e = e.offsetParent;
@@ -374,86 +385,85 @@
 				return aE;
 			},
 			setAttribute: function(attribute) {
-				this.update().each(function(eleNode){
+				this.each(function() {
 					for (var o in attribute) {
 						if (attribute.hasOwnProperty(o)) {
-							eleNode.setAttribute(o.toString(), attribute[o]);
+							this.setAttribute(o.toString(), attribute[o]);
 						}
 					}
 				});
 				return this;
 			},
 			removeAttribute: function(attribute) {
-				this.update().each(function(eleNode){
-					eleNode.removeAttribute(attribute);
+				this.each(function() {
+					this.removeAttribute(attribute);
 				});
 				return this;
 			},
 			addEvent: function(evt) {
-				this.update().each(function(eleNode){
-					f.addEvent(eleNode, evt);
+				this.each(function() {
+					f.addEvent(this, evt);
 				});
 				return this;
 			},
 			toggle: function(callback) {
-				this.update().each(function(eleNode){
-					if (eleNode.style.display == "none") {
-						eleNode.style.display = "";
-						eleNode.style.visibility = "visible";
+				this.each(function() {
+					if (this.style.display == "none") {
+						this.style.display = "";
+						this.style.visibility = "visible";
 					} else {
-						eleNode.style.display = "none";
+						this.style.display = "none";
 					}
-					assert(callback).isFunction() && callback.call(eleNode);
+					assert(callback).isFunction() && callback.call(this);
 				});
 				return this;
 			},
 			show: function(callback) {
-				this.update().each(function(eleNode) {
-					eleNode.style.display = "block";
-					eleNode.style.visibility = "visible";
-					assert(callback).isFunction() && callback.call(eleNode);
+				this.each(function() {
+					this.style.display = "block";
+					this.style.visibility = "visible";
+					assert(callback).isFunction() && callback.call(this);
 				});
 				return this;
 			},
 			hide: function(callback) {
-				this.update().each(function(eleNode) {
-					eleNode.style.display = "none";
-					assert(callback).isFunction() && callback.call(eleNode);
+				this.each(function() {
+					this.style.display = "none";
+					assert(callback).isFunction() && callback.call(this);
 				});
-				
 				return this;
 			},
 			hidden: function(callback) {
-				this.update().each(function(eleNode){
-					eleNode.style.visibility = "hidden";
-					assert(callback).isFunction() && callback.call(eleNode);
+				this.each(function() {
+					this.style.visibility = "hidden";
+					assert(callback).isFunction() && callback.call(this);
 				});
 				return this;
 			},
 			visible: function(callback) {
-				this.update().each(function(eleNode){
-					eleNode.style.visibility = "visible";
-					assert(callback).isFunction() && callback.call(eleNode);
+				this.each(function() {
+					this.style.visibility = "visible";
+					assert(callback).isFunction() && callback.call(this);
 				});
 				return this;
 			},
 			rotate: function(degree) {
 			    var deg = 'rotate(' + degree + 'deg)';
-			    this.update().each(function(eleNode){
-				    eleNode.style.transform = deg;
-				    eleNode.style.OTransform = deg;
-				    eleNode.style.MozTransform = deg;
-				    eleNode.style.KhtmlTransform = deg;
-				    eleNode.style.WebkitTransform = deg;
+			    this.each(function() {
+				    this.style.transform = deg;
+				    this.style.OTransform = deg;
+				    this.style.MozTransform = deg;
+				    this.style.KhtmlTransform = deg;
+				    this.style.WebkitTransform = deg;
 			    });
 			    return this;
 			},
 			submit: function(callback) {
-			    this.update().each(function(eleNode){
-				    if (eleNode.tagName == "FORM") {
-						eleNode.submit();
+			    this.each(function() {
+				    if (this.tagName == "FORM") {
+						this.submit();
 				    }
-				    assert(callback).isFunction() && callback.call(eleNode);
+				    assert(callback).isFunction() && callback.call(this);
 			    });
 			    return this;
 			},
@@ -461,36 +471,36 @@
 				var child = null,
 					arg = arguments,
 					length = arg.length;
-				this.update().each(function(eleNode) {
+				this.each(function() {
 					for (var i = 0; i < length; ++ i) {
 						child = arg[i];
-						if (f(child).isElement()) {
-							eleNode.appendChild(child);
-						} else if (f(child.source[0]).isElement()) {
+						if (assert(child).isElement()) {
+							this.appendChild(child);
+						} else if (assert(child.source).isElement()) {
 							// only apply for this library;
-							eleNode.appendChild(child.source[0]);
+							this.appendChild(child.source);
 						}
 					}	
 				});
 				return this;
 			},
 			setHTML: function(html) {
-				this.update().each(function(eleNode){
-					if (f(eleNode.value).isExists()) {
-						eleNode.value = html;
-					} else if (f(eleNode.innerHTML).isExists()) {
-						eleNode.innerHTML = html; 
+				this.each(function() {
+					if (assert(this.value).isExists()) {
+						this.value = html;
+					} else if (f(this.innerHTML).isExists()) {
+						this.innerHTML = html; 
 					}
 				});
 				return this;
 			},
 			getHTML: function() {
 				var aV = [];
-				this.update().each(function(eleNode){
-					if (f(eleNode.value).isExists()) {
-						aV.push(eleNode.value);
-					} else if (f(eleNode.innerHTML).isExists()) {
-						aV.push(eleNode.innerHTML); 
+				this.each(function() {
+					if (assert(this.value).isExists()) {
+						aV.push(this.value);
+					} else if (assert(this.innerHTML).isExists()) {
+						aV.push(this.innerHTML); 
 					}
 				});
 				if (aV.length == 1) {
@@ -500,8 +510,8 @@
 			},
 			getHeight: function() {
 				var aV = [], height;
-				this.update().each(function(eleNode){
-					height = (eleNode.height) ? eleNode.height : eleNode.offsetWidth;
+				this.each(function() {
+					height = (this.height) ? this.height : this.offsetWidth;
 					aV.push(height);
 				});
 				if (aV.length == 1) {
@@ -511,8 +521,8 @@
 			},
 			getWidth: function() {
 				var aV = [], width;
-				this.update().each(function(eleNode){
-					width = (eleNode.width) ? eleNode.width : eleNode.offsetWidth;
+				this.each(function() {
+					width = (this.width) ? this.width : this.offsetWidth;
 					aV.push(width);
 				});
 				if (aV.length == 1) {
@@ -522,8 +532,8 @@
 			},
 			getFirstChild: function() {
 				var aE = [], firstChild = null;
-				this.update().each(function(eleNode){
-					firstChild = eleNode.firstChild;
+				this.each(function() {
+					firstChild = this.firstChild;
 					while (firstChild && firstChild.nodeType != 1) {
 						firstChild = firstChild.nextSibling;
 					}
@@ -536,8 +546,8 @@
 			},
 			getLastChild: function() {
 				var aE = [], lastChild = null;
-				this.update().each(function(eleNode){
-					lastChild = eleNode.lastChild;
+				this.each(function() {
+					lastChild = this.lastChild;
 					while (lastChild && lastChild.nodeType != 1) {
 						lastChild = lastChild.previousSibling;
 					}
@@ -549,18 +559,19 @@
 				return f(aE);
 			},
 			setOpacity: function(value) {
-				this.update().each(function(eleNode){
-					(!f.isIE() && (eleNode.style.opacity = value/100))  
-					|| (eleNode.style.filter = "alpha(opacity = value)".replace("value", value));
+				(value < 1) && (value = 100 * value);
+				this.each(function() {
+					(!f.isIE() && (this.style.opacity = value/100))  
+					|| (this.style.filter = "alpha(opacity = value)".replace("value", value));
 				});
 				return this;
 			},
 			setStyle: function(style) {
-				this.update().each(function(eleNode) {
-					if (f(style).isString()) {
-						eleNode.setAttribute("style", style);
-					} else if (f(style).isObject()) {
-						var st = eleNode.style;
+				this.each(function() {
+					if (assert(style).isString()) {
+						this.setAttribute("style", style);
+					} else if (assert(style).isObject()) {
+						var st = this.style;
 						for (var o in style) {
 							if (o == "float") {
 								st["cssStyle"] = style[o];
@@ -575,18 +586,18 @@
 			},
 			getStyle: function(property) {
 				var aV = [], value, match, type = f(property).typeofStyle();
-				this.update().each(function(eleNode) {
-					if (eleNode.currentStyle && !f.isOpera()) { 
+				this.each(function() {
+					if (this.currentStyle && !f.isOpera()) { 
 						if (type == "opacity") {
-							value = eleNode.currentStyle["filter"];
+							value = this.currentStyle["filter"];
 							match = value.match(/(.*)opacity\s*=\s*(\w+)(.*)/i);
 							value = match ? isNaN(parseFloat(match[2])) ? 100 : parseFloat(match[2]) : 100;
 						} else { 
-							value = eleNode.currentStyle[property];
+							value = this.currentStyle[property];
 						}
 					} else if (currentDocument.defaultView && currentDocument.defaultView.getComputedStyle) {
 						property = property.replace(/[(A-Z)]/g, function(match){return "-" + match.toLowerCase()});
-						value = currentDocument.defaultView.getComputedStyle(eleNode, null).getPropertyValue(property);
+						value = currentDocument.defaultView.getComputedStyle(this, null).getPropertyValue(property);
 						value = (type == "opacity") ? 100 * value : value; 
 					}
 					switch (type) {
@@ -606,13 +617,13 @@
 			},
 			removeStyle: function(property) {
 				property = property.replace(/[(A-Z)]/g, function(match){return "-" + match.toLowerCase()});
-				this.update().each(function(eleNode) {
-					eleNode.style.removeProperty(property);
+				this.each(function() {
+					this.style.removeProperty(property);
 				});
 				return this;
 			}
 		};
-		
-		f(html).appendModule("html");
+
+		f(html).addTo("html");
 	})();
 	

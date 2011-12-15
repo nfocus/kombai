@@ -38,7 +38,7 @@
 				f(o).isArray() && (v = "[]");
 				f(o).isObject() && (v = "{}");
 				node.setHTML(
-					f("<div style='clear:left; line-height: 18px;'>")
+					f()("<div style='clear:left; line-height: 18px;'>")
 					 ("<div style='color: #9b1a00; overflow: hidden; width: 246px; float: left;'>")
 						("<span style='padding-left: 18px;'>source</span>")
 					 ("</div>")
@@ -54,7 +54,7 @@
 						}
 						if (f(v).isObject()) {
 							childObject.push(v);
-							innerHTML = f("<div style='width: 246px; overflow: hidden; float: left;'>")
+							innerHTML = f()("<div style='width: 246px; overflow: hidden; float: left;'>")
 												("<span style='margin-right: 6px;'>[+]</span>")
 												("<span style='color: #9b1a00; cursor: pointer;' onclick='")(F_NAME)('.callFunction("viewChild")(this, ')(childObject.length - 1)(")'> ")(p)("</span>")
 											("</div>")
@@ -62,7 +62,7 @@
 											("<div style='margin-left: 49px; display: none;'></div>")();
 						} else {
 							v = v.toString ? v.toString() : v;
-							innerHTML = f("<div style='width: 246px; overflow: hidden; float: left;'>")
+							innerHTML = f()("<div style='width: 246px; overflow: hidden; float: left;'>")
 												("<span style='margin: 0px 12px 0px 8px;'>-</span>")
 												("<span style='color: #9b1a00'> ")(p)("</span>")
 											("</div>")
@@ -80,7 +80,7 @@
 					node.setHTML("Can't access !!!");
 				}
 			}
-			return node();
+			return node;
 		};
 		
 		var viewChild = f.storeFunction(
@@ -106,7 +106,7 @@
 			}
 		}
 				
-		var publicity = {
+		var common = {
 		
 			viewSource: function(config) {
 				f(config).copyTo(setting);
@@ -115,14 +115,14 @@
 				(setting.align == "middle") && f({position: "relative"}).copyTo(style);
 				f({zIndex: setting.zIndex}).copyTo(style);
 				
-				var src = (setting.viewCover == true) ? this : this.source[0];
+				var src = (setting.viewCover == true) ?
+							this : (this.list && this.list.length) ? this.list : this.source;
 				/* Only show one console,
 					if want to show more obeject,
-						please add them in to an array
+						add them in to an array
 							then view this array source.
 				*/
 				var consoleId = holdId || f.createId();
-				
 				if (f(holdId).notExists()) {
 					holdId = consoleId;
 					var container = f.createElement({
@@ -144,20 +144,21 @@
 					container = f(container);
 				}
 				
-				var info = f.createElement({
-					style: style
-				});
+				var info = f.createElement({style: style});
+				
 				var title = f.createElement({
-					innerHTML: f("<div style='float:left;'>")
+					innerHTML: f()("<div style='float:left;'>")
 									("<span>[ + ]</span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(window).viewSource(true);'> window </span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document).viewSource(true);'> / document </span>")
 								("</div>")(),
 					style: {padding: "3px 0px 0px 0px", height: "20px"}
 				});
+				
 				var button = f.createElement({
 					style: {textAlign: "right", margin: "0px 0px 0px 200px", cursor: "move"}
 				});
+				
 				var minimize = f.createElement({
 					innerHTML: "--",
 					tagName: "span",
@@ -183,6 +184,7 @@
 						}
 					}
 				});
+				
 				var dynamic = f.createElement({
 					style: {position: "relative", width: "100%"}
 				});
@@ -190,8 +192,9 @@
 				var textarea = f.createElement({
 					innerHTML: textareaValue,
 					tagName: "textarea",
-					style: {height: "43px", width: "100%", overflow: "auto", marginLeft: (function(){return f.isIE() ? "-2px" : "0px"})()}
+					style: {height: "43px", width: "100%", overflow: "auto", marginLeft: "-3px"}
 				});
+				
 				var active = f.createElement({
 					innerHTML: "eval",
 					tagName: "span",
@@ -203,10 +206,11 @@
 							textareaValue && eval(textareaValue);
 						}
 					},
-					style: {position: "absolute", bottom: "0px", right: "0px",  padding: "0px 8px", color: "black", border: "2px solid green"}
+					style: {position: "absolute", cursor: "pointer", bottom: "-23px", right: "-3px",  padding: "2px 10px", background: "white", color: "black", border: "2px solid green"}
 				});
+				
 				var content = f.createElement({
-					style: {background: "#848484", borderTop: "2px solid green", height: "300px", width: "100%", overflow: "auto"},
+					style: {background: "#848484", borderTop: "2px solid black", height: "300px", width: "100%", overflow: "auto"},
 					event: {
 						"mousedown": function(event) {
 							var evt = event || currentWindow.event;
@@ -214,7 +218,7 @@
 						}
 					}
 				});
-
+				
 				container.addChild(
 					info.addChild(
 						title.addChild(button.addChild(minimize, close)),
@@ -232,8 +236,8 @@
 						minimize.setHTML("--");
 					}
 				}
-			
-				title.setDragable({proxy: container()});
+				
+				title.setDragable({proxy: container.source});
 				content.addChild(discover(src));
 				return this;
 			},
@@ -248,12 +252,12 @@
 				}
 				if (f(source).isString() || f(source).isNumber()) {
 					temporary.push(
-						f("<div style='width: 100%; color: ")(light)("'><span style='margin: 0px 12px 0px 8px;'>-</span>")
+						f()("<div style='width: 100%; color: ")(light)("'><span style='margin: 0px 12px 0px 8px;'>-</span>")
 							(source)("</div>")()
 					);
 				} else {
 					temporary.push(
-						f("<div style='width: 100%; color: ")(light)("'>")
+						f()("<div style='width: 100%; color: ")(light)("'>")
 							(discover(source).innerHTML)
 							("</div>")()
 					);
@@ -278,5 +282,5 @@
 				return this;
 			}
 		}
-		f(publicity).appendModule("common");
+		f(common).addTo("common");
 	})();

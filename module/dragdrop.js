@@ -3,10 +3,10 @@
 	(function() {
 	
 		var f = window[F_NAME],
-			currentWindow = f.getWindow(),
-			currentDocument = currentWindow.document,
+			copy = f.callFunction('copy'),
 			assert = f.callFunction('assert'),
-			copy = f.callFunction('copy');
+			currentWindow = f.getWindow(),
+			currentDocument = currentWindow.document;
 
 		function preventEvent(event) {
 			var evt = event || currentWindow.event;
@@ -26,8 +26,8 @@
 					
 		var html = {
 			setDragable: function(config) {
-				this.update().each(function(el) {
-						var ADN = el;
+				this.each(function() {
+						var ADN = this;
 						var setting = {
 							x: 0,
 							y: 0,
@@ -115,9 +115,9 @@
 					});
 					return this;
 			},
-			queenMove: function(config) {
-				this.update().each(function(el) {
-					var ADN = el;
+			wipe: function(config) {
+				this.each(function() {
+					var ADN = this;
 					var setting = {
 						lockX: false,
 						lockY: false,
@@ -237,5 +237,5 @@
 			}
 		};
 		
-		f(html).appendModule("html");
+		f(html).addTo("html");
 	})();
