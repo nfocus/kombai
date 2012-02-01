@@ -93,7 +93,7 @@
 				b = split(parseInt(source[3]), parseInt(target[3]), divide, "", transition);
 				
 				for (var i = 0; i <= divide; ++i) {
-					range.push(f("rgb(")(parseInt(r[i]))(", ")(parseInt(g[i]))(", ")(parseInt(b[i]))(")")());
+					range.push(f()("rgb(")(parseInt(r[i]))(", ")(parseInt(g[i]))(", ")(parseInt(b[i]))(")")());
 				}
 			} else { 
 				delta = target - source;
@@ -186,5 +186,5 @@
 				}
 		};
 		
-		f(publicity).appendModule("html");
+		f(publicity).addTo("html");
 	})();
