@@ -65,7 +65,7 @@
 				}
 			}
 		};
-		f(publicity).createModule("transition");
+		f(publicity).addTo("utility");
 	})();
 	
 	
@@ -104,7 +104,7 @@
 			return range;
 		}
 		
-		f({split: split}).appendModule("utility");
+		f({split: split}).addTo("utility");
 		
 		function revolution(element, name, start, delay) {
 			var proxy = element.albus[name],
