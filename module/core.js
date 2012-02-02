@@ -296,7 +296,7 @@
 					/*
 					 *	append method, properties of an object to exists module;
 						example: 
-							Focus({a: 'b', c: 'd', d: function(){}}).appendTo('utility');
+							Focus({a: 'b', c: 'd', d: function(){}}).addTo('utility');
 					*/
 					addTo: function(module) {
 						if (module == "utility") {
