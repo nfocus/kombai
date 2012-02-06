@@ -10,8 +10,22 @@
         currentDocument = currentWindow.document;
 		
     var publicity = {
-        createTestCase: function(name) {
-            alert(name);
+        takeTest: function(name) {
+            var testName = name;
+            return function(testCase) {
+                if (!f(testCase).isObject(true)) return;
+                  
+                for (var i in testCase) {
+                    if (!testCase.hasOwnProperty(i)) continue;
+                    
+                    try {
+                        testCase[i]();
+                    } catch(e) {
+                    
+                    }                    
+                }
+                
+            }
         }
     }
        
