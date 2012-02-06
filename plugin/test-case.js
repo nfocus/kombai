@@ -11,20 +11,29 @@
 		
     var publicity = {
         takeTest: function(name) {
-            var testName = name;
+            var record = {
+                testName : name || ""
+            };
+            
             return function(testCase) {
                 if (!f(testCase).isObject(true)) return;
                   
                 for (var i in testCase) {
                     if (!testCase.hasOwnProperty(i)) continue;
                     
+                    record[i] = {};
+                    var test = record[i];
+                    var start = 0;
                     try {
+                        start = new Date().getTime();
                         testCase[i]();
                     } catch(e) {
                     
-                    }                    
+                    }
+                    test.duration = new Date().getTime() - start;
                 }
                 
+                console.log(record);
             }
         }
     }
