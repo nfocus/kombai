@@ -1,26 +1,20 @@
-﻿
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-			"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
-<html xmlns="http://www.w3.org/1999/xhtml"> 
+﻿<html> 
 	<head> 
 		<title>canvas demo.</title> 
 		<meta content="text/html; charset=utf-8" http-equiv="content-type"> 
 		<script type="text/javascript" src="../module/core.js"></script>
-		<script type="text/javascript" src="../module/html.js"></script> 
-		<script type="text/javascript" src="../module/dragdrop.js"></script> 
-		<script type="text/javascript" src="../module/debug.js"></script> 
+		<script type="text/javascript" src="../module/html.js"></script>
+		<script type="text/javascript" src="../plugin/test-case.js"></script>
 	</head> 
 	<body scroll="no"> 
 		<div id="test" style="width: 100%; overflow: hidden; text-align: center;"> 
-			<div style="width: 480px; margin: auto;"> 
-				Type some words to view this demo:
-				<input type="text" style="width: 200px;"  /> 
-			</div> 
-
 			<div>Created by Minh Nguyen. Email: mnx2012@gmail.com</div> 
 		</div> 
-		<script type="text/javascript"> 
-			alert(document.querySelectorAll);
+		<script type="text/javascript">
+			Focus.takeTest("first test")({
+				"case 1" : function() {alert(23)},
+				"case 2" : function() {alert(34)}
+			});
 		</script> 
 	</body> 
 </html>
