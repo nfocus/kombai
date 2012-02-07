@@ -100,32 +100,41 @@
 					return (isExists(src) && 3 == src.nodeType);
 				},
 				
+				// using for test case;
 				equal: function(expect, message) {
 					if (this.source != expect) {
-						message != null && notify.push(message);
+						message != null && notify.push({result: "fail", message: message});
+						return false;
 					}
-					return this;
+					message != null && notify.push({result: "pass"});
+					return true;
 				},
 				
 				notEqual: function(expect, message) {
 					if (this.source == expect) {
-						message != null && notify.push(message);
+						message != null && notify.push({result: "fail", message: message});
+						return false;
 					}
-					return this;
+					message != null && notify.push({result: "pass"});
+					return true;
 				},
 				
 				deepEqual: function(expect, message) {
 					if (this.source !== expect) {
-						message != null && notify.push(message);
+						message != null && notify.push({result: "fail", message: message});
+						return false;
 					}
-					return this;
+					message != null && notify.push({result: "pass"});
+					return true;
 				},
 				
 				notDeepEqual: function(expect, message) {
 					if (this.source === expect) {
-						message != null && notify.push(message);
+						message != null && notify.push({result: "fail", message: message});
+						return false;
 					}
-					return this;
+					message != null && notify.push({result: "pass"});
+					return true;
 				}
 				
 			}
@@ -177,7 +186,10 @@
 			if (assert(selection).isBlank()) return null;
 			var root = context ? context : currentDocument;
 			var list = null;
-			try {list = root.querySelectorAll(selection);} catch(e) {}
+			try {
+				list = root.querySelectorAll(selection);
+			} catch(e) {}
+			
 			if (list && list.length) {
 				return list;
 			} else {
@@ -401,6 +413,7 @@
 				}
 			}
 			assert(temporary.list).isList() && (cover.list = temporary.list);
+			temporary.list = null;
 			return copy(assert(data)).to(cover);
 		};
 		

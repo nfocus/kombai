@@ -10,30 +10,45 @@
         currentDocument = currentWindow.document;
 		
     var publicity = {
-        takeTest: function(name) {
-            var record = {
-                testName : name || ""
-            };
+        
+        takeTest: function(testName) {
             
-            return function(testCase) {
-                if (!f(testCase).isObject(true)) return;
-                  
-                for (var i in testCase) {
-                    if (!testCase.hasOwnProperty(i)) continue;
+            return function (cases) {
+                if (!f(cases).isObject(true)) return;
+                var report = {
+                    testName : testName || ""
+                };
+                
+                for (var i in cases) {
                     
-                    record[i] = {};
-                    var test = record[i];
-                    var start = 0;
+                    if (!cases.hasOwnProperty(i)) continue;
+                    var test = {}, start = 0;
+                    f.clearNotify();
+                    report[i] = test;
+                    
                     try {
                         start = new Date().getTime();
-                        testCase[i]();
+                        cases[i]();
                     } catch(e) {
-                    
+                        test.result = "test fails because got error.";
                     }
+                    
                     test.duration = new Date().getTime() - start;
+                    var resultTest = f.getNotifyMessage();
+                    var passed = 0;
+                    test.detail = {};
+                    for (var o = 0; o < resultTest.length; ++o) {
+                        if (resultTest[o].result == "pass") passed += 1;
+                        test.detail[o] = resultTest[o];
+                    }
+                   
+                    test.result = "success";
+                    test.total = resultTest.length;
+                    test.passed = passed;
+                    test.failed = test.total - test.passed;
                 }
                 
-                console.log(record);
+                return report;
             }
         }
     }
