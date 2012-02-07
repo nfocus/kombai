@@ -2028,13 +2028,12 @@
 				},
 				stroke: function(config) {
 					var canvas = this.source;
-					assert(config).isJsObject() && copy(config).to(canvas);
+					assert(config).isObject(true) && copy(config).to(canvas);
 					canvas.stroke();
 					return this;
 				},
 				fill: function() {
 					var canvas = this.source;
-					//assert(config).isJsObject() && copy().to(canvas);
 					canvas.fill();
 					return this;
 				},
