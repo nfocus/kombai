@@ -20,7 +20,7 @@
 			return !notExists(obj);
 		}
 		
-		var notify = [];
+		var notify = [], number = 0;
 		// Check type of object.
 		function assert(data) {
 			
@@ -100,11 +100,6 @@
 					return (isExists(src) && 3 == src.nodeType);
 				},
 				
-				startTest: function() {
-					notify = [];
-					return this;
-				},
-				
 				equal: function(expect, message) {
 					if (this.source != expect) {
 						message != null && notify.push(message);
@@ -131,19 +126,8 @@
 						message != null && notify.push(message);
 					}
 					return this;
-				},
-				
-				finishTest: function(callback) {
-					if (callback instanceof Function) {
-						callback(notify);
-					} else {
-						for (var i in notify) {
-							alert(notify[i]);
-						}
-					}
-					notify = [];
-					return this;
 				}
+				
 			}
 		};
 		
@@ -211,7 +195,6 @@
 			list: null,
 			number: {},
 			object: {},
-			boxnote: {},
 			variable: {}
 		};
 		
@@ -272,11 +255,6 @@
 							}
 						}
 						return this;
-					},
-					update: function(opt) {
-						console.log(this.list);
-					},
-					select: function(selection) {
 					}
 				},
 				list: {
@@ -335,7 +313,7 @@
 		
 		var utility = {
 			/* 
-				using to cache function
+				using to caching function
 				example:
 					Focus.storeFunction(function(a, b){alert(a + b)}, "m nguyen");
 					Focus.callFunction("m nguyen")("hello ", "Vietnam");
@@ -359,17 +337,9 @@
 					delete temporary.method[id];
 				}
 			},
-			/*
-				return unique number;
-			*/
-			getNumber: (
-				function() {
-					var number = 0;
-					return function() {
-						return ++ number;
-					}
-				}
-			)(),
+			getNumber: function() {
+				return ++ number;
+			},
 			storeObject: function(src, id) {
 				id = assert(id).isExists() ? id : this.getNumber();
 				assert(src).isObject() && (temporary.object[id] = src);
@@ -399,6 +369,13 @@
 			},
 			getSelfName: function() {
 				return F_NAME;
+			},
+			getNotifyMessage: function() {
+				return notify;
+			},
+			clearNotify: function() {
+				notify = [];
+				return this;
 			}
 		};
 		
