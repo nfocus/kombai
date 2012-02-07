@@ -20,96 +20,132 @@
 	(function() {
 		
 		var currentWindow = window, currentDocument = currentWindow.document;
-		
-		function isExists(obj) {
-			return (obj != null && obj != undefined);
-		}
 			
 		function notExists(obj) {
-			return !isExists(obj);
+			return (obj == null || obj == undefined);
 		}
 		
+		function isExists(obj) {
+			return !notExists(obj);
+		}
+		
+		var notify = [], number = 0;
 		// Check type of object.
 		function assert(data) {
 			
 			return {
-			
-				source: [data],
+				source: data,
 				
 				isExists: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return isExists(src);
 				},
 				
 				notExists: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return !isExists(src);
 				},
 				
 				isArray: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return (isExists(src) && src.constructor == Array);
 				},
 				
 				isBoolean: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return (isExists(src) && src.constructor == Boolean);
 				},
 				
 				isElement: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return (isExists(src) && src.tagName && 1 == src.nodeType);
 				},
 				
 				isEvent: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return (isExists(src) && (isExists(src.target) || isExists(src.srcElement)));
 				},
 				
 				isFunction: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return (isExists(src) && src instanceof Function);	
 				},
 				
-				isJsObject: function() {
-					var src = this.source[0];
-					return (isExists(src) && src.constructor == Object);
-				},
-				
 				isList: function() {
-					var src = this.source[0];
-					return (this.isArray() || this.isObject(src) && src.length);
+					var src = this.source;
+					return (this.isArray() || this.isObject() && src.length);
 				},
 				
 				isNumber: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return (isExists(src) && src.constructor == Number);
 				},
 				
-				isObject: function() {
-					var src = this.source[0];
+				isObject: function(flag) {
+					var src = this.source;
+					if (flag) {
+						return (isExists(src) && src.constructor == Object);
+					}
 					return (isExists(src) && "object" === typeof src);
 				},
 				
 				isString: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return (isExists(src) && "string" === typeof src);
 				},
 				
 				isBlank: function() {
-					var src = this.source[0];
-					return (this.isString(src) && "" == src.replace(/^\s+|\s+$/g, ""));
+					var src = this.source;
+					return (this.isString() && "" == src.replace(/^\s+|\s+$/g, ""));
 				},
 				
 				isRegExp: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return (isExists(src) && src.constructor == RegExp);
 				},
 				
 				isTextNode: function() {
-					var src = this.source[0];
+					var src = this.source;
 					return (isExists(src) && 3 == src.nodeType);
+				},
+				
+				// using for test case;
+				equal: function(expect, message) {
+					if (this.source != expect) {
+						message != null && notify.push({result: "fail", message: message});
+						return false;
+					}
+					message != null && notify.push({result: "pass"});
+					return true;
+				},
+				
+				notEqual: function(expect, message) {
+					if (this.source == expect) {
+						message != null && notify.push({result: "fail", message: message});
+						return false;
+					}
+					message != null && notify.push({result: "pass"});
+					return true;
+				},
+				
+				deepEqual: function(expect, message) {
+					if (this.source !== expect) {
+						message != null && notify.push({result: "fail", message: message});
+						return false;
+					}
+					message != null && notify.push({result: "pass"});
+					return true;
+				},
+				
+				notDeepEqual: function(expect, message) {
+					if (this.source === expect) {
+						message != null && notify.push({result: "fail", message: message});
+						return false;
+					}
+					message != null && notify.push({result: "pass"});
+					return true;
 				}
+				
 			}
 		};
 		
@@ -140,8 +176,8 @@
 						source = arg[i];
 						for (var o in source) {
 							if (!Object.prototype[o]) {
-								if (assert(source[o]).isJsObject()) {
-									assert(target[o]).isJsObject() || (target[o] = {});
+								if (assert(source[o]).isObject(true)) {
+									assert(target[o]).isObject() || (target[o] = {});
 									copy(source[o]).to(target[o]);
 								} else {
 									// override.
@@ -159,9 +195,12 @@
 			if (assert(selection).isBlank()) return null;
 			var root = context ? context : currentDocument;
 			var list = null;
-			try { list = root.querySelectorAll(selection); } catch(e) {}
+			try {
+				list = root.querySelectorAll(selection);
+			} catch(e) {}
+			
 			if (list && list.length) {
-				return [].slice.call(list, 0);
+				return list;
 			} else {
 				return null;
 			}
@@ -174,26 +213,38 @@
 				copy: copy,
 				select: select
 			},
+			list: null,
 			number: {},
 			object: {},
-			boxnote: {},
 			variable: {}
 		};
 		
 		
 		// for extend from user;
-		var extension = {
+		extension = {
 				common: {
-						filter: function(data) {
-							return true;
-						},
-						copyTo: function(target) {
-							return copy(this.source[0]).to(target);
+					filter: function(data) {
+						return true;
+					},
+					each: function(func) {
+						var data = this.source, length = data.length;
+						if (length && !assert(data).isFunction()) {
+							for (var i = 0; i < length; ++i) {
+								func.call(data[i], i, data);
+							}
 						}
+						return this;
+					},
+					copyTo: function(target) {
+						return copy(this.source).to(target);
+					}
 				},
 				array: {
 					filter: function(data) {
 						return assert(data).isArray();
+					},
+					mix: function() {
+						return this.source.sort();
 					}
 				},
 				event: {
@@ -207,77 +258,30 @@
 					}
 				},
 				html: {
-						filter: function(data) {
-							if (assert(data).isString()) {
-								if ("querySelectorAll" in currentDocument) {
-									var list = select(data);
-									if (list) return true;
-								}
-							} else if (assert(data).isList()) {
-								// check list of element;
-								var listElement = true;
-								for (var i in data) {
-									if (data.hasOwnProperty(i)) {
-										if (!assert(data[i]).isElement()) {
-											listElement = false;
-											break;
-										}
-									}
-								}
-								return listElement;
-							}
-							return assert(data).isElement();
-						},
-						update: function(opt) {
-							var list = null;
-							if (assert(this.source[0]).isString()) {
-								list = select(this.source[0]);
-								list && (this.source = list);
-							} else if (assert(this.source[0]).isList()) {
-								this.source = this.source[0];
-							}
-							if (opt == true) return this.source;
-							return f(this.source);
-						},
-						select: function(selection) {
-							var aE = [], flag = f.getSelfName() + f.getNumber();
-							if (assert(selection).notExists()) {
-								return this.update(true);
-							} else {
-								this.update().each(function(e) {
-									f(select(selection, e)).each(function(el) {
-										// check double push to array;
-										if (f(el[flag]).notExists()) {
-											aE.push(el);
-											el[flag] = 1;
-										}
-									});
-								});
-								return f(aE).each(function(e) {
-									delete e[flag];
-								});
+					filter: function(data) {
+						if (assert(data).isElement()) {
+							temporary.list = [data];
+							return true;
+						} else if (assert(data).isString()) {
+							temporary.list = select(data);
+							if (temporary.list) return true;
+						}
+						return false;
+					},
+					each: function(func) {
+						var data = this.list, length = data.length;
+						if (length && !assert(data).isFunction()) {
+							for (var i = 0; i < length; ++i) {
+								func.call(data[i], i, data);
 							}
 						}
+						return this;
+					}
 				},
 				list: {
-						filter: function(data) {
-							if ("querySelectorAll" in currentDocument) {
-								if (assert(data).isString()) {
-									var list = select(data);
-									if (list) return true;
-								}
-							} 
-							return assert(data).isList();
-						},
-						each: function(func) {
-							var data = this.source[0], length = data.length, i;
-							if (!assert(data).isFunction()) {
-								for (i = 0; i < length; ++i) {
-									func(data[i], i, data);
-								}
-							}
-							return this;
-						}
+					filter: function(data) {
+						return assert(data).isList();
+					}
 				},
 				number: {
 					filter: function(data) {
@@ -285,37 +289,36 @@
 					}
 				},
 				object: {
-						filter: function(data) {
-							return assert(data).isObject();
-						},
-						/*
-						 *	append method, properties of an object to exists module;
-							example: 
-								Focus({a: 'b', c: 'd', d: function(){}}).appendModule('utility');
-						*/
-						appendModule: function(module) {
-							if (module == "utility") {
-								for (var i in this.source[0]) {
-									!(i in currentWindow[F_NAME])
-									&& (currentWindow[F_NAME][i] = this.source[0][i]);
-								}
-							} else if (module in extension) {
-								for (var i in this.source[0]) {
-									!(i in extension[module])
-									&& (extension[module][i] = this.source[0][i]);
-								}
+					filter: function(data) {
+						return assert(data).isObject();
+					},
+					/*
+					 *	append method, properties of an object to exists module;
+						example: 
+							Focus({a: 'b', c: 'd', d: function(){}}).addTo('utility');
+					*/
+					addTo: function(module) {
+						if (module == "utility") {
+							for (var i in this.source) {
+								!(i in currentWindow[F_NAME]) && (currentWindow[F_NAME][i] = this.source[i]);
 							}
-						},
-						/*
-						 *  create a new module from an object; 
-						 */
-						createModule: function(name) {
-							var isExtend = !(name in extension)
-											&& assert(this.source[0]).isJsObject()
-							if (isExtend) {
-								extension[name] = this.source[0]
+						} else {
+							for (var mod in extension) {
+								if (mod != mod.replace(module, "")) {
+									for (var i in this.source) {
+										!(i in extension[mod]) && (extension[mod][i] = this.source[i]);
+									}
+								}
 							}
 						}
+					},
+					/*
+					 *  create a new module from an object; 
+					 */
+					createModule: function(name) {
+						var isExtend = !(name in extension) && assert(this.source).isObject();
+						isExtend && (extension[name] = this.source);
+					}
 				},
 				regexp: {
 					filter: function(data) {
@@ -331,7 +334,7 @@
 		
 		var utility = {
 			/* 
-				using to cache function
+				using to caching function
 				example:
 					Focus.storeFunction(function(a, b){alert(a + b)}, "m nguyen");
 					Focus.callFunction("m nguyen")("hello ", "Vietnam");
@@ -339,7 +342,7 @@
 					alert("hello Vietnam");
 			 */
 			storeFunction: function(src, id) {
-				var id = assert(id).isExists() ? id : this.getNumber();
+				id = assert(id).isExists() ? id : this.getNumber();
 				assert(src).isFunction() && (temporary.method[id] = src);
 				return id;
 			},
@@ -348,25 +351,18 @@
 				if (assert(func).isFunction()) {
 					return func;
 				}
+				return function(){};
 			},
 			unstoreFunction: function(id) {
 				if (assert(temporary.method[id]).isExists()) {
 					delete temporary.method[id];
 				}
 			},
-			/*
-				return unique number;
-			*/
-			getNumber: (
-				function() {
-					var number = 0;
-					return function() {
-						return ++ number;
-					}
-				}
-			)(),
+			getNumber: function() {
+				return ++ number;
+			},
 			storeObject: function(src, id) {
-				var id = assert(id).isExists() ? id : this.getNumber();
+				id = assert(id).isExists() ? id : this.getNumber();
 				assert(src).isObject() && (temporary.object[id] = src);
 				return id;
 			},
@@ -394,42 +390,48 @@
 			},
 			getSelfName: function() {
 				return F_NAME;
+			},
+			getNotifyMessage: function() {
+				return notify;
+			},
+			clearNotify: function() {
+				notify = [];
+				return this;
 			}
 		};
 		
-
-		function f(data) {
 		
-			var cover = function(src) {
-				var source = cover.source, isString = assert(src).isString() || assert(src).isNumber();
-				if (assert(src).notExists()) {
-					if (source.length == 1) {
-						return source[0];
-					}
-					return source;
-				} else {
-					if (assert(source[0]).isString() && isString) {
-						source[0] += src;
+		function finish(data) {
+			
+			if (!arguments.length) {
+				var source = [];
+				return function(src) {
+					if (assert(src).notExists()) {
+						return source.join("");
 					} else {
 						source.push(src);
 					}
-				}
-				return cover;
-			};
-
+					return arguments.callee;
+				};
+			}
+			
+			var cover = function(){};
 			for (var i in extension) {
 				if (assert(extension[i]["filter"]).isFunction()) {
 					extension[i]["filter"](data) && copy(extension[i]).to(cover);
 				}
 			}
+			assert(temporary.list).isList() && (cover.list = temporary.list);
+			temporary.list = null;
 			return copy(assert(data)).to(cover);
 		};
 		
-		copy(utility).to(f);
+		copy(utility).to(finish);
 		
-		!assert(F_NAME).isString() && (F_NAME = "F");
+		!F_NAME && (F_NAME = "F");
 		
-		currentWindow[F_NAME] = f;
+		currentWindow[F_NAME] = finish;
+		
 	})();
 	
 
@@ -571,7 +573,7 @@
 			}
 		};
 	
-		f(XMLHTTP).appendModule("utility");
+		f(XMLHTTP).addTo("utility");
 	})();
 	
 
@@ -583,18 +585,19 @@
 
 
 	
+	
 	// html module;
 	(function() {
 		
 		var f = window[F_NAME],
-			currentWindow = f.getWindow(),
-			currentDocument = currentWindow.document,
+			copy = f.callFunction('copy'),
 			assert = f.callFunction('assert'),
-			copy = f.callFunction('copy');
+			currentWindow = f.getWindow(),
+			currentDocument = currentWindow.document;
 		
 		var event = {
 			getXY: function(XY) {
-				var src = this.source[0], point = {x: 0, y: 0};
+				var src = this.source, point = {x: 0, y: 0};
 				if (src.clientX !== undefined && src.clientX !== undefined) {
 					point = {
 						x: src.clientX + currentDocument.body.scrollLeft + currentDocument.documentElement.scrollLeft,
@@ -617,7 +620,7 @@
 			}
 		};
 		
-		f(event).appendModule("event");
+		f(event).addTo("event");
 		
 		var utility = {
 			isIE6: function() {
@@ -668,6 +671,7 @@
 				}
 				return true; 
 			},
+			
 			isMobile: function() {
 				return isExists(currentWindow.onorientationchange);
 			},
@@ -736,7 +740,7 @@
 				return new Date().getTime();
 			},
 			createId: function(src) {
-				return f(src || F_NAME)("-")(this.getNumber())("-")(this.getTime())();
+				return f()(src || F_NAME)("-")(this.getNumber())("-")(this.getTime())();
 			},
 			/*
 				Focus.createElement({
@@ -802,26 +806,26 @@
 			}
 		};
 		
-		f(utility).appendModule("utility");
+		f(utility).addTo("utility");
 		
 		var string = {
 			upper: function(opt) {
-				this.source[0] = this.source[0].toUpperCase();
-				return (opt === true) ? this.source[0] : this;
+				this.source = this.source.toUpperCase();
+				return (opt === true) ? this.source : this;
 			},
 			lower: function(opt) {
-				this.source[0] = this.source[0].toLowerCase();
-				return (opt === true) ? this.source[0] : this;
+				this.source = this.source.toLowerCase();
+				return (opt === true) ? this.source : this;
 			},
 			trim: function(opt) {
-				this.source[0] = this.source[0].replace(/^\s+|\s+$/g, "");
-				return (opt === true) ? this.source[0] : this;
+				this.source = this.source.replace(/^\s+|\s+$/g, "");
+				return (opt === true) ? this.source : this;
 			},
 			urlEncode: function(opt) {
-				return (opt === true) ? encodeURIComponent(this.source[0]) : this;
+				return (opt === true) ? encodeURIComponent(this.source) : this;
 			},
 			urlDecode: function(opt) {
-				return (opt === true) ? decodeURIComponent(this.source[0]) : this;
+				return (opt === true) ? decodeURIComponent(this.source) : this;
 			},
 			toRGB: function(opt) {
 				/*
@@ -829,7 +833,7 @@
 					example : Focus("green").toColor(true);
 					return: rgb(0, 128, 0);
 				*/
-				var colorName = this.source[0];
+				var colorName = this.source;
 				var table = f.createElement({
 					tagName: "table",
 					style: {
@@ -847,11 +851,11 @@
 				currentDocument.body.removeChild(table);
 				match = value.match(/^#(\w{2})(\w{2})(\w{2})/);
 				value = !match ? value : "rgb(" + parseInt(match[1], 16) + ", " + parseInt(match[2], 16) + ", " + parseInt(match[3], 16) + ")";
-				this.source = [value];
-				return (opt === true) ? this.source[0] : this;
+				this.source = value;
+				return (opt === true) ? this.source : this;
 			},
 			typeofStyle: function() {
-				var style = this.source[0];
+				var style = this.source;
 				switch (style) {
 					case "backgroundColor": case "color":
 						return "color";
@@ -866,55 +870,64 @@
 				}
 			}
 		};
-		f(string).appendModule("string");
+		f(string).addTo("string");
 		
 		var html = {
 			appendTo: function(element) {
-				this.update().each(function(eleNode) {
-					f(element).isElement() && element.appendChild(eleNode);
+				this.each(function() {
+					assert(element).isElement() && element.appendChild(this);
 				});
 				return this;
 			},
 			hasClass: function(classHass) {
 				var isHas = false;
-				this.update().each(function(eleNode) {
-					if ((eleNode.className.lastIndexOf(classHass) + 1)) {
-						isHas = true;
+				this.each(function() {
+					var classs = this.className.split(" "); 
+					for (var i = 0; i < classs.length; ++i) {
+						if (classs[i] == classHass) {
+							isHas = true;
+							break;
+						}
 					}
 				});
 				return isHas;
 			},
 			addClass: function(classAdd) {
-				this.update().each(function(eleNode) {
-					if (eleNode.className != "") {
-						eleNode.className = eleNode.className.replace(new RegExp(classAdd, "gi"), "");
-						eleNode.className += " " + classAdd;
+				this.each(function() {
+					if (this.className != "") {
+						this.className += " " + classAdd;
 					} else {
-						eleNode.className = classAdd;
+						this.className = classAdd;
 					}
 				});
 				return this;
 			},
 			setClass: function(classSet) {
-				this.update().each(function(e) {
-					e.className = classSet;
+				this.each(function() {
+					this.className = classSet;
 				});
 				return this;
 			},
 			removeClass: function(classRemove) {
-				this.update().each(function(e) {
-					if (f(classRemove).notExists()) {
-						e.className = "";
+				this.each(function() {
+					if (assert(classRemove).notExists()) {
+						this.className = "";
 					} else {
-						e.className = e.className.replace(new RegExp(classRemove, "gi"), "");
+						var classs = this.className.split(" ");
+						for (var i = 0; i < classs.length; ++i) { 
+							if (classs[i] == classRemove) {
+								classs[i] = "";
+							}
+						}
+						this.className = classs.join(" ");
 					}
 				});
 				return this;
 			},
 			getXY: function() {
 				var aE = [];
-				this.update().each(function(e) {
-					var x = 0, y = 0;
+				this.each(function() {
+					var x = 0, y = 0, e = this;
 					while (e) {
 						x += e.offsetLeft;
 						y += e.offsetTop;
@@ -929,8 +942,8 @@
 			},
 			getX: function() {
 				var aE = [];
-				this.update().each(function(e) {
-					var x = 0;
+				this.each(function() {
+					var x = 0, e = this;
 					while (e) {
 						x += e.offsetLeft;
 						e = e.offsetParent;
@@ -944,8 +957,8 @@
 			},
 			getY: function() {
 				var aE = [];
-				this.update().each(function(e) {
-					var y = 0;
+				this.each(function() {
+					var y = 0, e = this;
 					while (e) {
 						y += e.offsetTop;
 						e = e.offsetParent;
@@ -958,86 +971,85 @@
 				return aE;
 			},
 			setAttribute: function(attribute) {
-				this.update().each(function(eleNode){
+				this.each(function() {
 					for (var o in attribute) {
 						if (attribute.hasOwnProperty(o)) {
-							eleNode.setAttribute(o.toString(), attribute[o]);
+							this.setAttribute(o.toString(), attribute[o]);
 						}
 					}
 				});
 				return this;
 			},
 			removeAttribute: function(attribute) {
-				this.update().each(function(eleNode){
-					eleNode.removeAttribute(attribute);
+				this.each(function() {
+					this.removeAttribute(attribute);
 				});
 				return this;
 			},
 			addEvent: function(evt) {
-				this.update().each(function(eleNode){
-					f.addEvent(eleNode, evt);
+				this.each(function() {
+					f.addEvent(this, evt);
 				});
 				return this;
 			},
 			toggle: function(callback) {
-				this.update().each(function(eleNode){
-					if (eleNode.style.display == "none") {
-						eleNode.style.display = "";
-						eleNode.style.visibility = "visible";
+				this.each(function() {
+					if (this.style.display == "none") {
+						this.style.display = "";
+						this.style.visibility = "visible";
 					} else {
-						eleNode.style.display = "none";
+						this.style.display = "none";
 					}
-					assert(callback).isFunction() && callback.call(eleNode);
+					assert(callback).isFunction() && callback.call(this);
 				});
 				return this;
 			},
 			show: function(callback) {
-				this.update().each(function(eleNode) {
-					eleNode.style.display = "block";
-					eleNode.style.visibility = "visible";
-					assert(callback).isFunction() && callback.call(eleNode);
+				this.each(function() {
+					this.style.display = "block";
+					this.style.visibility = "visible";
+					assert(callback).isFunction() && callback.call(this);
 				});
 				return this;
 			},
 			hide: function(callback) {
-				this.update().each(function(eleNode) {
-					eleNode.style.display = "none";
-					assert(callback).isFunction() && callback.call(eleNode);
+				this.each(function() {
+					this.style.display = "none";
+					assert(callback).isFunction() && callback.call(this);
 				});
-				
 				return this;
 			},
 			hidden: function(callback) {
-				this.update().each(function(eleNode){
-					eleNode.style.visibility = "hidden";
-					assert(callback).isFunction() && callback.call(eleNode);
+				this.each(function() {
+					this.style.visibility = "hidden";
+					assert(callback).isFunction() && callback.call(this);
 				});
 				return this;
 			},
 			visible: function(callback) {
-				this.update().each(function(eleNode){
-					eleNode.style.visibility = "visible";
-					assert(callback).isFunction() && callback.call(eleNode);
+				this.each(function() {
+					this.style.visibility = "visible";
+					assert(callback).isFunction() && callback.call(this);
 				});
 				return this;
 			},
 			rotate: function(degree) {
 			    var deg = 'rotate(' + degree + 'deg)';
-			    this.update().each(function(eleNode){
-				    eleNode.style.transform = deg;
-				    eleNode.style.OTransform = deg;
-				    eleNode.style.MozTransform = deg;
-				    eleNode.style.KhtmlTransform = deg;
-				    eleNode.style.WebkitTransform = deg;
+			    this.each(function() {
+				    this.style.transform = deg;
+				    this.style.OTransform = deg;
+				    this.style.MozTransform = deg;
+				    this.style.KhtmlTransform = deg;
+				    this.style.WebkitTransform = deg;
 			    });
 			    return this;
 			},
 			submit: function(callback) {
-			    this.update().each(function(eleNode){
-				    if (eleNode.tagName == "FORM") {
-						eleNode.submit();
+			    this.each(function() {
+				    if (this.tagName == "FORM") {
+						this.submit();
 				    }
-				    assert(callback).isFunction() && callback.call(eleNode);
+				    assert(callback).isFunction() && callback.call(this);
 			    });
 			    return this;
 			},
@@ -1045,36 +1057,36 @@
 				var child = null,
 					arg = arguments,
 					length = arg.length;
-				this.update().each(function(eleNode) {
+				this.each(function() {
 					for (var i = 0; i < length; ++ i) {
 						child = arg[i];
-						if (f(child).isElement()) {
-							eleNode.appendChild(child);
-						} else if (f(child.source[0]).isElement()) {
+						if (assert(child).isElement()) {
+							this.appendChild(child);
+						} else if (assert(child.source).isElement()) {
 							// only apply for this library;
-							eleNode.appendChild(child.source[0]);
+							this.appendChild(child.source);
 						}
 					}	
 				});
 				return this;
 			},
 			setHTML: function(html) {
-				this.update().each(function(eleNode){
-					if (f(eleNode.value).isExists()) {
-						eleNode.value = html;
-					} else if (f(eleNode.innerHTML).isExists()) {
-						eleNode.innerHTML = html; 
+				this.each(function() {
+					if (assert(this.value).isExists()) {
+						this.value = html;
+					} else if (f(this.innerHTML).isExists()) {
+						this.innerHTML = html; 
 					}
 				});
 				return this;
 			},
 			getHTML: function() {
 				var aV = [];
-				this.update().each(function(eleNode){
-					if (f(eleNode.value).isExists()) {
-						aV.push(eleNode.value);
-					} else if (f(eleNode.innerHTML).isExists()) {
-						aV.push(eleNode.innerHTML); 
+				this.each(function() {
+					if (assert(this.value).isExists()) {
+						aV.push(this.value);
+					} else if (assert(this.innerHTML).isExists()) {
+						aV.push(this.innerHTML); 
 					}
 				});
 				if (aV.length == 1) {
@@ -1084,8 +1096,8 @@
 			},
 			getHeight: function() {
 				var aV = [], height;
-				this.update().each(function(eleNode){
-					height = (eleNode.height) ? eleNode.height : eleNode.offsetWidth;
+				this.each(function() {
+					height = (this.height) ? this.height : this.offsetWidth;
 					aV.push(height);
 				});
 				if (aV.length == 1) {
@@ -1095,8 +1107,8 @@
 			},
 			getWidth: function() {
 				var aV = [], width;
-				this.update().each(function(eleNode){
-					width = (eleNode.width) ? eleNode.width : eleNode.offsetWidth;
+				this.each(function() {
+					width = (this.width) ? this.width : this.offsetWidth;
 					aV.push(width);
 				});
 				if (aV.length == 1) {
@@ -1106,8 +1118,8 @@
 			},
 			getFirstChild: function() {
 				var aE = [], firstChild = null;
-				this.update().each(function(eleNode){
-					firstChild = eleNode.firstChild;
+				this.each(function() {
+					firstChild = this.firstChild;
 					while (firstChild && firstChild.nodeType != 1) {
 						firstChild = firstChild.nextSibling;
 					}
@@ -1120,8 +1132,8 @@
 			},
 			getLastChild: function() {
 				var aE = [], lastChild = null;
-				this.update().each(function(eleNode){
-					lastChild = eleNode.lastChild;
+				this.each(function() {
+					lastChild = this.lastChild;
 					while (lastChild && lastChild.nodeType != 1) {
 						lastChild = lastChild.previousSibling;
 					}
@@ -1133,18 +1145,19 @@
 				return f(aE);
 			},
 			setOpacity: function(value) {
-				this.update().each(function(eleNode){
-					(!f.isIE() && (eleNode.style.opacity = value/100))  
-					|| (eleNode.style.filter = "alpha(opacity = value)".replace("value", value));
+				(value < 1) && (value = 100 * value);
+				this.each(function() {
+					(!f.isIE() && (this.style.opacity = value/100))  
+					|| (this.style.filter = "alpha(opacity = value)".replace("value", value));
 				});
 				return this;
 			},
 			setStyle: function(style) {
-				this.update().each(function(eleNode) {
-					if (f(style).isString()) {
-						eleNode.setAttribute("style", style);
-					} else if (f(style).isObject()) {
-						var st = eleNode.style;
+				this.each(function() {
+					if (assert(style).isString()) {
+						this.setAttribute("style", style);
+					} else if (assert(style).isObject()) {
+						var st = this.style;
 						for (var o in style) {
 							if (o == "float") {
 								st["cssStyle"] = style[o];
@@ -1159,18 +1172,18 @@
 			},
 			getStyle: function(property) {
 				var aV = [], value, match, type = f(property).typeofStyle();
-				this.update().each(function(eleNode) {
-					if (eleNode.currentStyle && !f.isOpera()) { 
+				this.each(function() {
+					if (this.currentStyle && !f.isOpera()) { 
 						if (type == "opacity") {
-							value = eleNode.currentStyle["filter"];
+							value = this.currentStyle["filter"];
 							match = value.match(/(.*)opacity\s*=\s*(\w+)(.*)/i);
 							value = match ? isNaN(parseFloat(match[2])) ? 100 : parseFloat(match[2]) : 100;
 						} else { 
-							value = eleNode.currentStyle[property];
+							value = this.currentStyle[property];
 						}
 					} else if (currentDocument.defaultView && currentDocument.defaultView.getComputedStyle) {
 						property = property.replace(/[(A-Z)]/g, function(match){return "-" + match.toLowerCase()});
-						value = currentDocument.defaultView.getComputedStyle(eleNode, null).getPropertyValue(property);
+						value = currentDocument.defaultView.getComputedStyle(this, null).getPropertyValue(property);
 						value = (type == "opacity") ? 100 * value : value; 
 					}
 					switch (type) {
@@ -1190,14 +1203,14 @@
 			},
 			removeStyle: function(property) {
 				property = property.replace(/[(A-Z)]/g, function(match){return "-" + match.toLowerCase()});
-				this.update().each(function(eleNode) {
-					eleNode.style.removeProperty(property);
+				this.each(function() {
+					this.style.removeProperty(property);
 				});
 				return this;
 			}
 		};
-		
-		f(html).appendModule("html");
+
+		f(html).addTo("html");
 	})();
 	
 
@@ -1213,10 +1226,10 @@
 	(function() {
 	
 		var f = window[F_NAME],
-			currentWindow = f.getWindow(),
-			currentDocument = currentWindow.document,
+			copy = f.callFunction('copy'),
 			assert = f.callFunction('assert'),
-			copy = f.callFunction('copy');
+			currentWindow = f.getWindow(),
+			currentDocument = currentWindow.document;
 
 		function preventEvent(event) {
 			var evt = event || currentWindow.event;
@@ -1236,8 +1249,8 @@
 					
 		var html = {
 			setDragable: function(config) {
-				this.update().each(function(el) {
-						var ADN = el;
+				this.each(function() {
+						var ADN = this;
 						var setting = {
 							x: 0,
 							y: 0,
@@ -1325,9 +1338,9 @@
 					});
 					return this;
 			},
-			queenMove: function(config) {
-				this.update().each(function(el) {
-					var ADN = el;
+			wipe: function(config) {
+				this.each(function() {
+					var ADN = this;
 					var setting = {
 						lockX: false,
 						lockY: false,
@@ -1447,7 +1460,7 @@
 			}
 		};
 		
-		f(html).appendModule("html");
+		f(html).addTo("html");
 	})();
 
 
@@ -1497,7 +1510,7 @@
 				f(o).isArray() && (v = "[]");
 				f(o).isObject() && (v = "{}");
 				node.setHTML(
-					f("<div style='clear:left; line-height: 18px;'>")
+					f()("<div style='clear:left; line-height: 18px;'>")
 					 ("<div style='color: #9b1a00; overflow: hidden; width: 246px; float: left;'>")
 						("<span style='padding-left: 18px;'>source</span>")
 					 ("</div>")
@@ -1513,7 +1526,7 @@
 						}
 						if (f(v).isObject()) {
 							childObject.push(v);
-							innerHTML = f("<div style='width: 246px; overflow: hidden; float: left;'>")
+							innerHTML = f()("<div style='width: 246px; overflow: hidden; float: left;'>")
 												("<span style='margin-right: 6px;'>[+]</span>")
 												("<span style='color: #9b1a00; cursor: pointer;' onclick='")(F_NAME)('.callFunction("viewChild")(this, ')(childObject.length - 1)(")'> ")(p)("</span>")
 											("</div>")
@@ -1521,7 +1534,7 @@
 											("<div style='margin-left: 49px; display: none;'></div>")();
 						} else {
 							v = v.toString ? v.toString() : v;
-							innerHTML = f("<div style='width: 246px; overflow: hidden; float: left;'>")
+							innerHTML = f()("<div style='width: 246px; overflow: hidden; float: left;'>")
 												("<span style='margin: 0px 12px 0px 8px;'>-</span>")
 												("<span style='color: #9b1a00'> ")(p)("</span>")
 											("</div>")
@@ -1539,7 +1552,7 @@
 					node.setHTML("Can't access !!!");
 				}
 			}
-			return node();
+			return node;
 		};
 		
 		var viewChild = f.storeFunction(
@@ -1565,7 +1578,7 @@
 			}
 		}
 				
-		var publicity = {
+		var common = {
 		
 			viewSource: function(config) {
 				f(config).copyTo(setting);
@@ -1574,14 +1587,14 @@
 				(setting.align == "middle") && f({position: "relative"}).copyTo(style);
 				f({zIndex: setting.zIndex}).copyTo(style);
 				
-				var src = (setting.viewCover == true) ? this : this.source[0];
+				var src = (setting.viewCover == true) ?
+							this : (this.list && this.list.length) ? this.list : this.source;
 				/* Only show one console,
 					if want to show more obeject,
-						please add them in to an array
+						add them in to an array
 							then view this array source.
 				*/
 				var consoleId = holdId || f.createId();
-				
 				if (f(holdId).notExists()) {
 					holdId = consoleId;
 					var container = f.createElement({
@@ -1603,20 +1616,21 @@
 					container = f(container);
 				}
 				
-				var info = f.createElement({
-					style: style
-				});
+				var info = f.createElement({style: style});
+				
 				var title = f.createElement({
-					innerHTML: f("<div style='float:left;'>")
+					innerHTML: f()("<div style='float:left;'>")
 									("<span>[ + ]</span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(window).viewSource(true);'> window </span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document).viewSource(true);'> / document </span>")
 								("</div>")(),
 					style: {padding: "3px 0px 0px 0px", height: "20px"}
 				});
+				
 				var button = f.createElement({
 					style: {textAlign: "right", margin: "0px 0px 0px 200px", cursor: "move"}
 				});
+				
 				var minimize = f.createElement({
 					innerHTML: "--",
 					tagName: "span",
@@ -1642,6 +1656,7 @@
 						}
 					}
 				});
+				
 				var dynamic = f.createElement({
 					style: {position: "relative", width: "100%"}
 				});
@@ -1649,8 +1664,9 @@
 				var textarea = f.createElement({
 					innerHTML: textareaValue,
 					tagName: "textarea",
-					style: {height: "43px", width: "100%", overflow: "auto", marginLeft: (function(){return f.isIE() ? "-2px" : "0px"})()}
+					style: {height: "43px", width: "100%", overflow: "auto", marginLeft: "-3px"}
 				});
+				
 				var active = f.createElement({
 					innerHTML: "eval",
 					tagName: "span",
@@ -1662,10 +1678,11 @@
 							textareaValue && eval(textareaValue);
 						}
 					},
-					style: {position: "absolute", bottom: "0px", right: "0px",  padding: "0px 8px", color: "black", border: "2px solid green"}
+					style: {position: "absolute", cursor: "pointer", bottom: "-23px", right: "-3px",  padding: "2px 10px", background: "white", color: "black", border: "2px solid green"}
 				});
+				
 				var content = f.createElement({
-					style: {background: "#848484", borderTop: "2px solid green", height: "300px", width: "100%", overflow: "auto"},
+					style: {background: "#848484", borderTop: "2px solid black", height: "300px", width: "100%", overflow: "auto"},
 					event: {
 						"mousedown": function(event) {
 							var evt = event || currentWindow.event;
@@ -1673,7 +1690,7 @@
 						}
 					}
 				});
-
+				
 				container.addChild(
 					info.addChild(
 						title.addChild(button.addChild(minimize, close)),
@@ -1691,8 +1708,8 @@
 						minimize.setHTML("--");
 					}
 				}
-			
-				title.setDragable({proxy: container()});
+				
+				title.setDragable({proxy: container.source});
 				content.addChild(discover(src));
 				return this;
 			},
@@ -1707,12 +1724,12 @@
 				}
 				if (f(source).isString() || f(source).isNumber()) {
 					temporary.push(
-						f("<div style='width: 100%; color: ")(light)("'><span style='margin: 0px 12px 0px 8px;'>-</span>")
+						f()("<div style='width: 100%; color: ")(light)("'><span style='margin: 0px 12px 0px 8px;'>-</span>")
 							(source)("</div>")()
 					);
 				} else {
 					temporary.push(
-						f("<div style='width: 100%; color: ")(light)("'>")
+						f()("<div style='width: 100%; color: ")(light)("'>")
 							(discover(source).innerHTML)
 							("</div>")()
 					);
@@ -1737,7 +1754,7 @@
 				return this;
 			}
 		}
-		f(publicity).appendModule("common");
+		f(common).addTo("common");
 	})();
 
 
@@ -1753,10 +1770,10 @@
 	(function() {
 		
 		var f = window[F_NAME],
-			currentWindow = f.getWindow(),
-			currentDocument = currentWindow.document,
+			copy = f.callFunction('copy'),
 			assert = f.callFunction('assert'),
-			copy = f.callFunction('copy');
+			currentWindow = f.getWindow(),
+			currentDocument = currentWindow.document;
 		
 		var C2 = {
 				filter: function(data) {
@@ -1772,148 +1789,148 @@
 				 * font, textAlign, textBaseline;
 				 */
 				config: function(config) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					copy(config).to(canvas);
 					return this;
 				},
 				strokeStyle: function(color){
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.strokeStyle = color;
 					return this;
 				},
 				fillStyle: function(color) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.fillStyle = color;
 					return this;
 				},
 				lineWidth: function(thick) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.lineWidth = thick;
 					return this;
 				},
 				lineCap: function(cap) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.lineCap = cap;
 					return this;
 				},
 				lineJoin: function(joinStyle) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.lineJoin = joinStyle;
 					return this;
 				},
 				font: function(name) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.font = name;
 					return this;
 				},
 				textAlign: function(state) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.textAlign = state;
 					return this;
 				},
 				textBaseline: function(line) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.textBaseline = line;
 					return this;
 				},
 				globalAlpha: function(opacity) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.globalAlpha = opacity;
 					return this;
 				},
 				compositeOperation: function(method) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.globalCompositeOperation = method;
 					return this;
 				},
 				shadowBlur: function(width) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.shadowBlur = width;
 					return this;
 				},
 				shadowColor: function(color) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.shadowColor = color;
 					return this;
 				},
 				shadowOffset: function(offset) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					assert(offset.x) && (canvas.shadowOffsetX = offset.x);
 					assert(offset.y) && (canvas.shadowOffsetY = offset.y);
 					return this;
 				},
 				// transform;
 				scale: function(x, y) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.scale(x, y);
 					return this;
 				},
 				rotate: function(angle) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.rotate(angle);
 					return this;
 				},
 				translate: function(x, y) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.translate(x, y);
 					return this;
 				},
 				transform: function(m11, m12, m21, m22, dx, dy){
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.transform(m11, m12, m21, m22, dx, dy);
 					return this;
 				},
 				setTransform: function(m11, m12, m21, m22, dx, dy) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.setTransform(m11, m12, m21, m22, dx, dy);
 					return this;
 				},
 				drawImage: function() {
-					var context = this.source[0];
+					var context = this.source;
 					context.drawImage.apply(context, arguments);
 					return this;
 				},
 				// working with path;
 				beginPath: function() {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.beginPath();
 					return this;
 				},
 				moveTo: function(x, y) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.moveTo(x, y);
 					return this;
 				},
 				lineTo: function(x, y) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.lineTo(x, y);
 					return this;
 				},
 				bezierCurveTo: function(controlX1, controlY1, controlX2, controlY2, X, Y) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.bezierCurveTo(controlX1, controlY1, controlX2, controlY2, X, Y);
 					return this;
 				},
 				quadraticCurveTo: function(controlX, controlY, X, Y) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.quadraticCurveTo(controlX, controlY, X, Y);
 					return this;
 				},
 				
 				// working with rectangle shape;
 				clearRect: function(left, top, width, height) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.clearRect(left, top, width, height);
 					return this;
 				},
 				fillRect: function(left, top, width, height, color) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					assert(color) && (canvas.fillStyle = color);
 					canvas.fillRect(left, top, width, height);
 					return this;
 				},
 				strokeRect: function(left, top, width, height, thick, color, fillColor) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					assert(thick).isExists() && (canvas.lineWidth = thick);	
 					assert(color).isExists() && (canvas.strokeStyle = color);
 					assert(fillColor).isExists() && (canvas.fillStyle = fillColor);
@@ -1924,7 +1941,7 @@
 				
 				// milestone is: [{x: x, y: y}, {x2: x2, y2: y2} ....{xn: xn, yn: yn}];
 				fillPath: function(milestone, color) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					assert(color).isExists() && (canvas.fillStyle = color);
 					canvas.beginPath();
 					canvas.moveTo(milestone[0].x, milestone[0].y);
@@ -1937,7 +1954,7 @@
 				},
 				// milestone is: [{x: x, y: y}, {x2: x2, y2: y2} ....{xn: xn, yn: yn}];
 				strokePath: function(milestone, thick, color, fillColor) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					assert(thick).isExists() && (canvas.lineWidth = thick);
 					assert(color).isExists() && (canvas.strokeStyle = color);
 					assert(fillColor).isExists() && (canvas.fillStyle = fillColor);
@@ -1952,12 +1969,12 @@
 					return this;
 				},
 				arc: function(x, y, radius, startAngle, endAngle, anticlockwise) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.arc(x, y, radius, startAngle, endAngle, anticlockwise);
 					return this;
 				},
 				fillArc: function(x, y, radius, startAngle, endAngle, anticlockwise, color) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					assert(color).isExists() && (canvas.fillStyle = color);
 					canvas.beginPath();
 					canvas.arc(x, y, radius, startAngle, endAngle, anticlockwise);
@@ -1966,7 +1983,7 @@
 					return this;
 				},
 				strokeArc: function(x, y, radius, startAngle, endAngle, anticlockwise, thick, color, fillColor) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					assert(color).isExists() && (canvas.strokeStyle = color);
 					assert(thick).isExists() && (canvas.lineWidth = thick);
 					assert(fillColor).isExists() && (canvas.fillStyle = fillColor);
@@ -1978,12 +1995,12 @@
 					return this;
 				},
 				circle: function(x, y, radius, color) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.arc(x, y, radius, 0, 2 * this.pi, false);
 					return this;
 				},
 				fillCircle: function(x, y, radius, color) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					assert(color).isExists() && (canvas.fillStyle = color);
 					canvas.beginPath();
 					canvas.arc(x, y, radius, 0, 2 * this.pi, false);
@@ -1992,7 +2009,7 @@
 					return this;
 				},
 				strokeCircle: function(x, y, radius, thick, color, fillColor) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					assert(color).isExists() && (canvas.strokeStyle = color);
 					assert(thick).isExists() && (canvas.lineWidth = thick);
 					assert(fillColor).isExists() && (canvas.fillStyle = fillColor);
@@ -2005,55 +2022,55 @@
 				},
 							
 				closePath: function() {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.closePath();
 					return this;
 				},
 				stroke: function(config) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					assert(config).isJsObject() && copy(config).to(canvas);
 					canvas.stroke();
 					return this;
 				},
 				fill: function() {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					//assert(config).isJsObject() && copy().to(canvas);
 					canvas.fill();
 					return this;
 				},
 				save: function(){
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.save();
 					return this;
 				},
 				restore: function() {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					canvas.restore();
 					return this;
 				},
 
 				//gradient;
 				createLinearGradient: function(x0, y0, x1, y1) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					return copy(this).to(canvas.createLinearGradient(x0, y0, x1, y1));
 				},
 				createRadialGradient: function(x0, y0, r0, x1, y1, r1) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					return copy(this).to(canvas.createRadialGradient(x0, y0, r0, x1, y1, r1));
 				},
 				addGradientColorStop: function(offset, color) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					// offset is range from 0.0 to 1.0;
 					canvas.addColorStop && canvas.addColorStop(offset, color);
 					return this;
 				},
 				//create pattern;
 				createPattern: function(image, repetition) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					return copy(this).to(canvas.createPattern(image, repetition));
 				},
 				isPointInPath: function(x, y) {
-					var canvas = this.source[0];
+					var canvas = this.source;
 					return canvas.isPointInPath(x, y);
 				}
 		};
@@ -2085,7 +2102,7 @@
 				copy(opt).to(set);
 				set.rotateDegree = this.pi * (set.rotateDegree/180);
 
-				var context = this.source[0];
+				var context = this.source;
 				var gradient = null;
 				
 				this.save();
@@ -2141,7 +2158,7 @@
 			}
 		}
 		
-		f(extC2).appendModule('canvas');
+		f(extC2).addTo('canvas');
 		
 		var utility = {
 			createContextCanvas: function(width, height, target) {
@@ -2170,7 +2187,7 @@
 			}
 		};
 		
-		f(utility).appendModule("utility");
+		f(utility).addTo("utility");
 	})();
 
 
@@ -2247,7 +2264,7 @@
 				}
 			}
 		};
-		f(publicity).createModule("transition");
+		f(publicity).addTo("utility");
 	})();
 	
 	
@@ -2275,7 +2292,7 @@
 				b = split(parseInt(source[3]), parseInt(target[3]), divide, "", transition);
 				
 				for (var i = 0; i <= divide; ++i) {
-					range.push(f("rgb(")(parseInt(r[i]))(", ")(parseInt(g[i]))(", ")(parseInt(b[i]))(")")());
+					range.push(f()("rgb(")(parseInt(r[i]))(", ")(parseInt(g[i]))(", ")(parseInt(b[i]))(")")());
 				}
 			} else { 
 				delta = target - source;
@@ -2286,7 +2303,7 @@
 			return range;
 		}
 		
-		f({split: split}).appendModule("utility");
+		f({split: split}).addTo("utility");
 		
 		function revolution(element, name, start, delay) {
 			var proxy = element.albus[name],
@@ -2368,6 +2385,5 @@
 				}
 		};
 		
-		f(publicity).appendModule("html");
+		f(publicity).addTo("html");
 	})();
-	
