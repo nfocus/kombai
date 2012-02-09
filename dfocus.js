@@ -1470,300 +1470,6 @@
 
 
 
-	
-	// debug module;
-	(function() {
-	
-		var f = window[F_NAME],
-			holdId,
-			flag = true,
-			temporary = [],
-			textareaValue = "";
-		
-		var currentWindow = f.getWindow(),
-			currentDocument = currentWindow.document;
-		
-		var setting = {
-			viewCover: false,
-			zIndex: 999,
-			align: ["left", "right", "middle"][2]
-		},
-		style = {
-			borderTop: "1px solid #cccccc",
-			top: "0px",
-			width: "64%",
-			margin: "auto",
-			padding: "3px",
-			color: "white",
-			backgroundColor: "black"
-		};
-		// store child object;
-		var childObject = [];			
-		
-		function discover(o) {
-			var node = f.createElement({style:{margin: "10px"}});
-			f(o).notExists() &&  (o = 'null');
-			if (f(o).isString() || f(o).isNumber()) {
-				node.setHTML(o);
-			} else {
-				var v = o && o.toString ? o.toString() : o, innerHTML = "";
-				f(o).isArray() && (v = "[]");
-				f(o).isObject() && (v = "{}");
-				node.setHTML(
-					f()("<div style='clear:left; line-height: 18px;'>")
-					 ("<div style='color: #9b1a00; overflow: hidden; width: 246px; float: left;'>")
-						("<span style='padding-left: 18px;'>source</span>")
-					 ("</div>")
-					 ("<div style='padding-left: 246px;'><xmp> ")(v)("\n</xmp></div>")
-					 ("</div>")()
-				);
-				try {
-					for (var p in o) {
-						try {
-							v = o[p] != null ? o[p] : '""';
-						} catch(e) {
-							v = "Can't access !!!";
-						}
-						if (f(v).isObject()) {
-							childObject.push(v);
-							innerHTML = f()("<div style='width: 246px; overflow: hidden; float: left;'>")
-												("<span style='margin-right: 6px;'>[+]</span>")
-												("<span style='color: #9b1a00; cursor: pointer;' onclick='")(F_NAME)('.callFunction("viewChild")(this, ')(childObject.length - 1)(")'> ")(p)("</span>")
-											("</div>")
-											("<div style='margin-left: 246px;'><xmp>Object {...}</xmp></div>")
-											("<div style='margin-left: 49px; display: none;'></div>")();
-						} else {
-							v = v.toString ? v.toString() : v;
-							innerHTML = f()("<div style='width: 246px; overflow: hidden; float: left;'>")
-												("<span style='margin: 0px 12px 0px 8px;'>-</span>")
-												("<span style='color: #9b1a00'> ")(p)("</span>")
-											("</div>")
-											("<div style='margin-left: 246px;'><xmp> ")(v)("\n</xmp></div>")();
-						}
-						
-						node.addChild(
-							f.createElement({
-								style: "clear:left; line-height: 18px;",
-								innerHTML: innerHTML
-							})
-						);
-					}
-				} catch(e) {
-					node.setHTML("Can't access !!!");
-				}
-			}
-			return node;
-		};
-		
-		var viewChild = f.storeFunction(
-			function (clickElement, childId) {
-				var parent = clickElement.parentNode.parentNode,
-					target = f(parent).getLastChild();
-				if (target.getFirstChild().isExists()) {
-					target.toggle();
-				} else {
-					target.addChild(discover(childObject[childId])).show();
-				}
-			},
-			"viewChild"
-		);
-			
-		function removeConsole() {
-			if (holdId) {
-				var console = currentDocument.getElementById(holdId);
-				currentDocument.body.removeChild(console);
-				holdId = null;
-				childObject = [];
-				textareaValue = null;
-			}
-		}
-				
-		var common = {
-		
-			viewSource: function(config) {
-				f(config).copyTo(setting);
-				(setting.align == "left") && f({position: "absolute", left: "0px"}).copyTo(style);
-				(setting.align == "right") && f({position: "absolute", right: "0px"}).copyTo(style);
-				(setting.align == "middle") && f({position: "relative"}).copyTo(style);
-				f({zIndex: setting.zIndex}).copyTo(style);
-				
-				var src = (setting.viewCover == true) ?
-							this : (this.list && this.list.length) ? this.list : this.source;
-				/* Only show one console,
-					if want to show more obeject,
-						add them in to an array
-							then view this array source.
-				*/
-				var consoleId = holdId || f.createId();
-				if (f(holdId).notExists()) {
-					holdId = consoleId;
-					var container = f.createElement({
-						id: consoleId,
-						event: {
-							"mousedown": function(event) {
-								var evt = event || currentWindow.event;
-								evt.cancelBubble = true;
-							}
-						},
-						style: {cursor: "default", top: "0px", position: "absolute", fontFamily: "Courier New", left: "0px", width: "100%", fontSize: "12px", height: "0px", zIndex: 999}
-					}).appendTo(currentDocument.body);
-				} else {
-					// Remove content;
-					var container = currentDocument.getElementById(consoleId);
-					while (container.firstChild) {
-						container.removeChild(container.firstChild);
-					}
-					container = f(container);
-				}
-				
-				var info = f.createElement({style: style});
-				
-				var title = f.createElement({
-					innerHTML: f()("<div style='float:left;'>")
-									("<span>[ + ]</span>")
-								("<span style='cursor: pointer;' onclick='" + F_NAME + "(window).viewSource(true);'> window </span>")
-								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document).viewSource(true);'> / document </span>")
-								("</div>")(),
-					style: {padding: "3px 0px 0px 0px", height: "20px"}
-				});
-				
-				var button = f.createElement({
-					style: {textAlign: "right", margin: "0px 0px 0px 200px", cursor: "move"}
-				});
-				
-				var minimize = f.createElement({
-					innerHTML: "--",
-					tagName: "span",
-					style: {color: "red", fontWeight: "bold", cursor: "pointer", marginRight: "12px"},
-					event: {
-						mousedown: function(event) {
-							var evt = event || currentWindow.event;
-							evt.cancelBubble = true;
-							resizeConsole();
-						}
-					}
-				});
-				
-				var close = f.createElement({
-					innerHTML: "[X]",
-					tagName: "span",
-					style: {color: "red", fontWeight: "bold", cursor: "pointer"},
-					event: {
-						mousedown: function(event) {
-							var evt = event || currentWindow.event;
-							evt.cancelBubble = true;
-							removeConsole();
-						}
-					}
-				});
-				
-				var dynamic = f.createElement({
-					style: {position: "relative", width: "100%"}
-				});
-				
-				var textarea = f.createElement({
-					innerHTML: textareaValue,
-					tagName: "textarea",
-					style: {height: "43px", width: "100%", overflow: "auto", marginLeft: "-3px"}
-				});
-				
-				var active = f.createElement({
-					innerHTML: "eval",
-					tagName: "span",
-					event: {
-						mousedown: function(event) {
-							var evt = event || currentWindow.event;
-							evt.cancelBubble = true;
-							textareaValue = textarea.getHTML();
-							textareaValue && eval(textareaValue);
-						}
-					},
-					style: {position: "absolute", cursor: "pointer", bottom: "-23px", right: "-3px",  padding: "2px 10px", background: "white", color: "black", border: "2px solid green"}
-				});
-				
-				var content = f.createElement({
-					style: {background: "#848484", borderTop: "2px solid black", height: "300px", width: "100%", overflow: "auto"},
-					event: {
-						"mousedown": function(event) {
-							var evt = event || currentWindow.event;
-							evt.cancelBubble = true;
-						}
-					}
-				});
-				
-				container.addChild(
-					info.addChild(
-						title.addChild(button.addChild(minimize, close)),
-						dynamic.addChild(textarea, active),
-						content
-					)
-				);
-									
-				function resizeConsole() {
-					if (content.getStyle('display') != "none") {
-						content.hide();
-						minimize.setHTML("[]");
-					} else {
-						content.show();
-						minimize.setHTML("--");
-					}
-				}
-				
-				title.setDragable({proxy: container.source});
-				content.addChild(discover(src));
-				return this;
-			},
-			log: function(config) {
-				var source = this(true) || this(),
-					light = "white";
-				if (!flag) {
-					flag = true;
-					light = "black";
-				} else {
-					flag = false;
-				}
-				if (f(source).isString() || f(source).isNumber()) {
-					temporary.push(
-						f()("<div style='width: 100%; color: ")(light)("'><span style='margin: 0px 12px 0px 8px;'>-</span>")
-							(source)("</div>")()
-					);
-				} else {
-					temporary.push(
-						f()("<div style='width: 100%; color: ")(light)("'>")
-							(discover(source).innerHTML)
-							("</div>")()
-					);
-				}
-				f(temporary.join("")).viewSource(config);
-				return this;
-			},
-			clear: function() {
-				flag = true;
-				temporary = [];
-				f("").viewSource();
-				return this;
-			},
-			viewStream: function(config) {
-				var storeFunction = [],
-					callee = arguments.callee.caller;
-				while (callee) {
-					storeFunction.unshift(callee.toString());
-					callee = callee.arguments.callee.caller;
-				}
-				f(storeFunction).viewSource(config);
-				return this;
-			}
-		}
-		f(common).addTo("common");
-	})();
-
-
-
-
-
-
-
-
 
 	 
 	// Canvas module;
@@ -2196,193 +1902,298 @@
 
 
 
+
+
+
+
+
+
+
+
+
 	
-	// transition module;
+	// debug module;
 	(function() {
-		
+	
 		var f = window[F_NAME],
-			currentWindow = f.getWindow(),
+			holdId,
+			flag = true,
+			temporary = [],
+			textareaValue = "";
+		
+		var currentWindow = f.getWindow(),
 			currentDocument = currentWindow.document;
-			
-		var publicity = {
-			transition: {
-				0: function(x) {
-					return x;
-				},
-				1: function(x) {
-					return x*(2 - x);
-				},
-				2: function(x) {
-					return Math.pow(x, 2);
-				},
-				3: function(x) {
-					return Math.pow(x, 1/2);
-				},
-				// Elastic effect.
-				4: function(x) {
-					var t = 1 + 1 + 1/2 + 1/4, a = t*t/2;
-					if (x < (2/t)) {
-						return -a*x*x + t*1.5*x;
-					} else if (x < (2.5/t)) {
-						return a*x*x - t*2.25*x + 3.5;
-					} else {
-						return -a*x*x + t*2.625*x - 2.4375;
-					}
-				},
-				// Bounce effect;
-				5: function(x) {
-					var t = 1 + 1 + 1/2 + 1/4, a = t*t, b = -2*t;
-					// Parabol :  a x^2 + bx +  c = 1.
-					if (x < (1/t)) {
-						return a*x*x;
-					} else if (x < (2/t)) {
-						return a*x*x + b*1.5*x + 3;
-					} else if (x < (2.5/t)) {
-						return a*x*x + b*2.25*x + 6;
-					} else {
-						return a*x*x + b*2.625*x + 7.875;
-					}
-				},
-				6: function(x) {
-					return 0.5 - 0.5*Math.cos(x*Math.PI)
-				},
-				7: function(x) {
-					return 0.5 - 0.5*Math.cos(x*10*Math.PI)
-				},
-				8: function(x) {
-					return x + Math.sin(x*10*Math.PI)/5
-				},
-				9: function(x) {
-					return x + 0.5*(x - 1)*Math.sin((x-1)*10*Math.PI)
-				},
-				10: function(x) {
-					return Math.pow(x, 0.25) + (x/5)*Math.sin(x*20*Math.PI)
-				},
-				11: function(x) {
-					return Math.pow(x, 0.25) + 0.5*(x-1)*Math.sin((x-1)*6*Math.PI)
-				}
-			}
+		
+		var setting = {
+			viewCover: false,
+			zIndex: 999,
+			align: ["left", "right", "middle"][2]
+		},
+		style = {
+			borderTop: "1px solid #cccccc",
+			top: "0px",
+			width: "64%",
+			margin: "auto",
+			padding: "3px",
+			color: "white",
+			backgroundColor: "black"
 		};
-		f(publicity).addTo("utility");
-	})();
-	
-	
-	// tranform module;
-	(function() {
-			
-		var f = window[F_NAME],
-			currentWindow = f.getWindow(),
-			currentDocument = currentWindow.document;
+		// store child object;
+		var childObject = [];			
 		
-		function parse(type, value) {
-			return {
-				"value": type == "color" ? f(value).toRGB(true) : parseFloat(value),
-				"unit": type == "color" ? "color" : value.toString().replace(/^[\d\s]|-[\d\s]/g, "")
-			};
-		}
-		
-		function split(source, target, divide, unit, transition) {
-			var r, g, b, delta, range = [];
-			if (unit == "color") {
-				source = source.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
-				target = target.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
-				r = split(parseInt(source[1]), parseInt(target[1]), divide, "", transition);
-				g = split(parseInt(source[2]), parseInt(target[2]), divide, "", transition);
-				b = split(parseInt(source[3]), parseInt(target[3]), divide, "", transition);
-				
-				for (var i = 0; i <= divide; ++i) {
-					range.push(f()("rgb(")(parseInt(r[i]))(", ")(parseInt(g[i]))(", ")(parseInt(b[i]))(")")());
-				}
-			} else { 
-				delta = target - source;
-				for (var i = 0; i <= divide; ++i) {
-					range.push((source + transition(i / divide) * delta).toFixed(2) + unit);
-				}
-			}
-			return range;
-		}
-		
-		f({split: split}).addTo("utility");
-		
-		function revolution(element, name, start, delay) {
-			var proxy = element.albus[name],
-				divide = proxy.value.length - 1;
-			// Remove old register.
-			if (element.albus["timer"][name]) {
-				clearInterval(element.albus["timer"][name]);
-			}
-			var revolve = function() {
-				var index = Math.ceil((f.getTime() - start)/delay);
-				index = (index - divide > 0) ? divide : index;
-				if (f(name).typeofStyle() == "opacity") {
-					f(element).setOpacity(parseInt(proxy.value[index]));
-				} else {
-					element.style[name] = proxy.value[index];
-				}
-				//element.albus.run(element, divide, delay);
-				
-				if (index == divide) {
-					clearInterval(element.albus["timer"][name]);
-					delete element.albus["timer"][name];
-					delete element.albus[name];
-					if (element.albus["timer"].length == 0) {
-						// Slowdown for IE.
-						setTimeout(function(){element.albus.finish(element)}, 1);
-					}
-				} 
-			}
-			element.albus["timer"][name] = setInterval(revolve, delay); 
-		}
-		
-		var publicity = {
-				transform: function(r) {
-					this.update().each(function(ADN){
-						var	styleName = ["background", "backgroundColor", "backgroundImage", "backgroundPosition", "backgroundRepeat", "bottom", "clip", "color", "font", "fontSize", "height", "left", "letterSpacing", "lineHeight", "listStyleImage", "listStylePosition", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft", "opacity", "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "right", "top", "width", "wordSpacing", "zIndex"];
-						var setting = {
-							start: r.start || function() {},
-							on: r.on || function() {},
-							end: r.end || function() {},
-							delay: r.delay || 12,
-							divide: r.divide || 100,
-							transition: r.transition || function(x) {return x * (2 - x)}
-						};
-						// albus is older name of this libraly;
-						ADN.albus = ADN.albus ? ADN.albus : {"timer": []};
-						ADN.albus.run = setting.on;
-						ADN.albus.finish = setting.end;
-						var proxy, name, type, from, target, start = f.getTime();
-						setting.start();
-						
-						for (var o in styleName) {
-							name = styleName[o];
-							if (f(r[name]).isExists()) {
-								type = f(name).typeofStyle();
-								if (type == "position" && f(ADN).getStyle("position") != "absolute") {
-									ADN.style.position = "relative";
-								}
-								proxy = ADN.albus[name] = {"value": null};
-								if (f(r[name]).isArray() && r[name].length > 2) {
-									proxy.value = r[name];
-								} else if (f(r[name]).isArray() && r[name].length == 2) {
-									from = parse(type, r[name][0]);
-									target = parse(type, r[name][1]);
-								} else {
-									from = parse(type, f(ADN).getStyle(name));
-									target = parse(type, r[name]);
-								}	
-								
-								proxy.value = proxy.value ? proxy.value : split(from.value, target.value, setting.divide, target.unit, setting.transition);
-								
-								// Register new transform.
-								revolution(ADN, name, start, setting.delay);
-							}
+		function discover(o) {
+			var node = f.createElement({style:{margin: "10px"}});
+			f(o).notExists() &&  (o = 'null');
+			if (f(o).isString() || f(o).isNumber()) {
+				node.setHTML(o);
+			} else {
+				var v = o && o.toString ? o.toString() : o, innerHTML = "";
+				f(o).isArray() && (v = "[]");
+				f(o).isObject() && (v = "{}");
+				node.setHTML(
+					f()("<div style='clear:left; line-height: 18px;'>")
+					 ("<div style='color: #9b1a00; overflow: hidden; width: 246px; float: left;'>")
+						("<span style='padding-left: 18px;'>source</span>")
+					 ("</div>")
+					 ("<div style='padding-left: 246px;'><xmp> ")(v)("\n</xmp></div>")
+					 ("</div>")()
+				);
+				try {
+					for (var p in o) {
+						try {
+							v = o[p] != null ? o[p] : '""';
+						} catch(e) {
+							v = "Can't access !!!";
 						}
-					});
-					
-					//return this object;
-					return this;
+						if (f(v).isObject()) {
+							childObject.push(v);
+							innerHTML = f()("<div style='width: 246px; overflow: hidden; float: left;'>")
+												("<span style='margin-right: 6px;'>[+]</span>")
+												("<span style='color: #9b1a00; cursor: pointer;' onclick='")(F_NAME)('.callFunction("viewChild")(this, ')(childObject.length - 1)(")'> ")(p)("</span>")
+											("</div>")
+											("<div style='margin-left: 246px;'><xmp>Object {...}</xmp></div>")
+											("<div style='margin-left: 49px; display: none;'></div>")();
+						} else {
+							v = v.toString ? v.toString() : v;
+							innerHTML = f()("<div style='width: 246px; overflow: hidden; float: left;'>")
+												("<span style='margin: 0px 12px 0px 8px;'>-</span>")
+												("<span style='color: #9b1a00'> ")(p)("</span>")
+											("</div>")
+											("<div style='margin-left: 246px;'><xmp> ")(v)("\n</xmp></div>")();
+						}
+						
+						node.addChild(
+							f.createElement({
+								style: "clear:left; line-height: 18px;",
+								innerHTML: innerHTML
+							})
+						);
+					}
+				} catch(e) {
+					node.setHTML("Can't access !!!");
 				}
+			}
+			return node;
 		};
 		
-		f(publicity).addTo("html");
+		var viewChild = f.storeFunction(
+			function (clickElement, childId) {
+				var parent = clickElement.parentNode.parentNode,
+					target = f(parent).getLastChild();
+				if (target.getFirstChild().isExists()) {
+					target.toggle();
+				} else {
+					target.addChild(discover(childObject[childId])).show();
+				}
+			},
+			"viewChild"
+		);
+			
+		function removeConsole() {
+			if (holdId) {
+				var console = currentDocument.getElementById(holdId);
+				currentDocument.body.removeChild(console);
+				holdId = null;
+				childObject = [];
+				textareaValue = null;
+			}
+		}
+				
+		var common = {
+		
+			viewSource: function(config) {
+				f(config).copyTo(setting);
+				(setting.align == "left") && f({position: "absolute", left: "0px"}).copyTo(style);
+				(setting.align == "right") && f({position: "absolute", right: "0px"}).copyTo(style);
+				(setting.align == "middle") && f({position: "relative"}).copyTo(style);
+				f({zIndex: setting.zIndex}).copyTo(style);
+				
+				var src = (setting.viewCover == true) ?
+							this : (this.list && this.list.length) ? this.list : this.source;
+				/* Only show one console,
+					if want to show more obeject,
+						add them in to an array
+							then view this array source.
+				*/
+				var consoleId = holdId || f.createId();
+				if (f(holdId).notExists()) {
+					holdId = consoleId;
+					var container = f.createElement({
+						id: consoleId,
+						event: {
+							"mousedown": function(event) {
+								var evt = event || currentWindow.event;
+								evt.cancelBubble = true;
+							}
+						},
+						style: {cursor: "default", top: "0px", position: "absolute", fontFamily: "Courier New", left: "0px", width: "100%", fontSize: "12px", height: "0px", zIndex: 999}
+					}).appendTo(currentDocument.body);
+				} else {
+					// Remove content;
+					var container = currentDocument.getElementById(consoleId);
+					while (container.firstChild) {
+						container.removeChild(container.firstChild);
+					}
+					container = f(container);
+				}
+				
+				var info = f.createElement({style: style});
+				
+				var title = f.createElement({
+					innerHTML: f()("<div style='float:left;'>")
+									("<span>[ + ]</span>")
+								("<span style='cursor: pointer;' onclick='" + F_NAME + "(window).viewSource(true);'> window </span>")
+								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document).viewSource(true);'> / document </span>")
+								("</div>")(),
+					style: {padding: "3px 0px 0px 0px", height: "20px"}
+				});
+				
+				var button = f.createElement({
+					style: {textAlign: "right", margin: "0px 0px 0px 200px", cursor: "move"}
+				});
+				
+				var minimize = f.createElement({
+					innerHTML: "--",
+					tagName: "span",
+					style: {color: "red", fontWeight: "bold", cursor: "pointer", marginRight: "12px"},
+					event: {
+						mousedown: function(event) {
+							var evt = event || currentWindow.event;
+							evt.cancelBubble = true;
+							resizeConsole();
+						}
+					}
+				});
+				
+				var close = f.createElement({
+					innerHTML: "[X]",
+					tagName: "span",
+					style: {color: "red", fontWeight: "bold", cursor: "pointer"},
+					event: {
+						mousedown: function(event) {
+							var evt = event || currentWindow.event;
+							evt.cancelBubble = true;
+							removeConsole();
+						}
+					}
+				});
+				
+				var dynamic = f.createElement({
+					style: {position: "relative", width: "100%"}
+				});
+				
+				var textarea = f.createElement({
+					innerHTML: textareaValue,
+					tagName: "textarea",
+					style: {height: "43px", width: "100%", overflow: "auto", marginLeft: "-3px"}
+				});
+				
+				var active = f.createElement({
+					innerHTML: "eval",
+					tagName: "span",
+					event: {
+						mousedown: function(event) {
+							var evt = event || currentWindow.event;
+							evt.cancelBubble = true;
+							textareaValue = textarea.getHTML();
+							textareaValue && eval(textareaValue);
+						}
+					},
+					style: {position: "absolute", cursor: "pointer", bottom: "-23px", right: "-3px",  padding: "2px 10px", background: "white", color: "black", border: "2px solid green"}
+				});
+				
+				var content = f.createElement({
+					style: {background: "#848484", borderTop: "2px solid black", height: "300px", width: "100%", overflow: "auto"},
+					event: {
+						"mousedown": function(event) {
+							var evt = event || currentWindow.event;
+							evt.cancelBubble = true;
+						}
+					}
+				});
+				
+				container.addChild(
+					info.addChild(
+						title.addChild(button.addChild(minimize, close)),
+						dynamic.addChild(textarea, active),
+						content
+					)
+				);
+									
+				function resizeConsole() {
+					if (content.getStyle('display') != "none") {
+						content.hide();
+						minimize.setHTML("[]");
+					} else {
+						content.show();
+						minimize.setHTML("--");
+					}
+				}
+				
+				title.setDragable({proxy: container.source});
+				content.addChild(discover(src));
+				return this;
+			},
+			log: function(config) {
+				var source = this(true) || this(),
+					light = "white";
+				if (!flag) {
+					flag = true;
+					light = "black";
+				} else {
+					flag = false;
+				}
+				if (f(source).isString() || f(source).isNumber()) {
+					temporary.push(
+						f()("<div style='width: 100%; color: ")(light)("'><span style='margin: 0px 12px 0px 8px;'>-</span>")
+							(source)("</div>")()
+					);
+				} else {
+					temporary.push(
+						f()("<div style='width: 100%; color: ")(light)("'>")
+							(discover(source).innerHTML)
+							("</div>")()
+					);
+				}
+				f(temporary.join("")).viewSource(config);
+				return this;
+			},
+			clear: function() {
+				flag = true;
+				temporary = [];
+				f("").viewSource();
+				return this;
+			},
+			viewStream: function(config) {
+				var storeFunction = [],
+					callee = arguments.callee.caller;
+				while (callee) {
+					storeFunction.unshift(callee.toString());
+					callee = callee.arguments.callee.caller;
+				}
+				f(storeFunction).viewSource(config);
+				return this;
+			}
+		}
+		f(common).addTo("common");
 	})();

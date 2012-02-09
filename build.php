@@ -2,27 +2,27 @@
 	include("system.class.php");
 	
 	$dfocus = array(
-		"core.js",
-		"ajax.js",
-		"html.js",
-		"dragdrop.js",
-		"debug.js",
-		"canvas.js",
-		"transform.js"
+		"module/core.js",
+		"module/ajax.js",
+		"module/html.js",
+		"module/dragdrop.js",
+		"module/canvas.js",
+		"moduletransform.js",
+		"plugin/debug.js"
 	);
 	
 	$nfocus = array(
-		"core.js",
-		"ajax.js",
-		"html.js",
-		"dragdrop.js"
+		"module/core.js",
+		"module/ajax.js",
+		"module/html.js",
+		"module/dragdrop.js"
 	);
 	
 	$content = "";
 	
 	foreach($dfocus as $file) {
 		$content .= "\n\n\n\n\n\n\n\n\n";
-		$content .= System::getTextContent("module/$file");
+		$content .= System::getTextContent("$file");
 	}
 	
 	System::putContentFile("dfocus.js", $content);
@@ -31,7 +31,7 @@
 	
 	foreach($nfocus as $file) {
 		$content .= "\n\n\n\n\n\n\n\n\n";
-		$content .= System::getTextContent("module/$file");
+		$content .= System::getTextContent("$file");
 	}
 	
 	System::putContentFile("nfocus.js", $content);
