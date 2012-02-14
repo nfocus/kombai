@@ -14,11 +14,25 @@
 		</div>
 		<div id="info"></div> 
 		<script type="text/javascript">
-		Focus.createTestCaseS1(2);
-		var variable = " The Test case ..."; 
-		Focus.createTestCaseS1(variable);
-		alertct("----------------------------------------------------------------------");
-		Focus.testCase(Focus.createTestCase("Test case S2"));
+		
+		function alertct(info) {
+			var elm = document.getElementById("info");
+			elm.innerHTML += "<br/>" + info;
+			elm.className = "border";
+		} 
+
+		// cu phap can phai nhu the nay:
+		Focus.createTestCase("Test case S2")({
+			"case1" : function() {
+				alertct("case 1");
+			},
+			"case2" : function() {
+				alertct("case 2");
+			},
+			"case3" : function() {
+				alertct("case 3");
+			}
+		});
 		</script> 
 	</body> 
 </html>
