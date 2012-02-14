@@ -4,17 +4,21 @@
 	<head> 
 		<title>createTestCase demo.</title> 
 		<meta content="text/html; charset=utf-8" http-equiv="content-type"> 
+		<style>.border {border:double 3px #b7b7b7;padding: 30px}</style>
 		<script type="text/javascript" src="../module/core.js"></script>
 		<script type="text/javascript" src="../module/test.js"></script> 
 	</head> 
 	<body scroll="no"> 
 		<div id="test" style="width: 100%; overflow: hidden; text-align: center;"> 
 			<div>Created by Duy Tu. Email: duytucntt@gmail.com</div> 
-		</div> 
+		</div>
+		<div id="info"></div> 
 		<script type="text/javascript">
-		Focus.createTestCase(2);
+		Focus.createTestCaseS1(2);
 		var variable = " The Test case ..."; 
-		Focus.createTestCase(variable);
+		Focus.createTestCaseS1(variable);
+		alertct("----------------------------------------------------------------------");
+		Focus.testCase(Focus.createTestCase("Test case S2"));
 		</script> 
 	</body> 
 </html>
