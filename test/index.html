@@ -5,7 +5,7 @@
 		<script type="text/javascript" src="../module/core.js"></script>
 		<script type="text/javascript" src="../module/html.js"></script>
 		<script type="text/javascript" src="../module/dragdrop.js"></script>
-		<script type="text/javascript" src="../module/debug.js"></script>
+		<script type="text/javascript" src="../plugin/debug.js"></script>
 		<script type="text/javascript" src="../plugin/test-case.js"></script>
 	</head> 
 	<body scroll="no"> 
@@ -15,14 +15,22 @@
 		<script type="text/javascript">
 			var resultTest = Focus.takeTest("first test")({
 				"case 1" : function() {
+					// test function select;
 					var divs = Focus.callFunction("select")("div");
 					Focus(divs.length).equal(2, "Must have look on select method")},
 				"case 2" : function() {
 					Focus(Focus(2).isNumber()).equal(true, "Must have a look on method isNumber");
+				},
+				"case 3" : function() {
+					// test function build string;
+					var str = Focus()("a")("b")("c")();
+					var str2 = Focus()("a")(2)(4)("c")();
+					Focus(str).equal("abc", "Take the look at function finish in core module");
+					Focus(str).equal("a24c", "Take the look at this case");
+					Focus(str2).equal("a24c", "Take the look at function finish in core module");
 				}
 			});
 			
-			console.log(resultTest);
 			Focus(resultTest).viewSource();
 		</script> 
 	</body> 
