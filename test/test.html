@@ -15,14 +15,25 @@
 		<div id="info"></div> 
 		<script type="text/javascript">
 		
-		function alertct(info) {
+		function alertct(info, isNL) {
 			var elm = document.getElementById("info");
-			elm.innerHTML += "<br/>" + info;
+			elm.innerHTML += (((typeof isNL === "undefined") || isNL) ? "<br/>" : ": ") + info;
 			elm.className = "border";
+		} 
+		
+		function alertoj(oj) {
+			if(typeof oj === "string") {
+				alertct(oj, false);
+			} else {
+				for(var it in oj) {
+					alertct(it);
+					alertoj(oj[it]);
+				}
+			}
 		} 
 
 		// cu phap can phai nhu the nay:
-		Focus.createTestCase("Test case S2")({
+		var testcaseinfo = Focus.createTestCase("Test case S2")({
 			"case1" : function() {
 				alertct("case 1");
 			},
@@ -33,6 +44,8 @@
 				alertct("case 3");
 			}
 		});
+		alertct("======================== Test case info ==========================");
+		alertoj(testcaseinfo);
 		</script> 
 	</body> 
 </html>
