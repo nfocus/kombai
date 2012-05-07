@@ -1,5 +1,5 @@
 
- // test case module
+ // test case module;
  
 (function() {
 	   
@@ -14,34 +14,36 @@
                 var report = {
                     testName : testName || ""
                 };
-                var test, start, passed, resultTest;
+                var start, passed, result, detail, duration, resultTest;
 				
                 for (var i in cases) {
                     if (!cases.hasOwnProperty(i)) continue;
                     f.clearNotify();
-					test = [];
-                    report[i] = test;
-                    
+					
                     try {
                         start = new Date().getTime();
                         cases[i]();
-						test.result = "success";
+						result = "success";
                     } catch(e) {
-                        test.result = "test fails because got error.";
+                        result = "test fails because got error";
                     }
-                    
-                    test.duration = new Date().getTime() - start;
-                    resultTest = f.getNotifyMessage();
+					
+                    duration = new Date().getTime() - start + " ms";
                     passed = 0;
-                    test.detail = {};
-                    for (var o = 0; o < resultTest.length; ++o) {
-                        if (resultTest[o].result == "pass") passed += 1;
-                        test.detail[o] = resultTest[o];
+                    detail = {};
+                    resultTest = f.getNotifyMessage();
+					for (var o = 0; o < resultTest.length; ++o) {
+                        detail[o] = resultTest[o];
+						(resultTest[o].result == "pass") && (passed += 1);
                     }
                     
-                    test.total = resultTest.length;
-                    test.passed = passed;
-                    test.failed = test.total - test.passed;
+					report[i] = {
+						duration: duration,
+						passed: passed,
+						failed: resultTest.length - passed,
+						total: resultTest.length,
+						detail: detail
+					};
                 }
                 
                 return report;
