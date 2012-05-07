@@ -397,7 +397,6 @@
 		
 		
 		function finish(data) {
-			
 			// just for build string;
 			if (!arguments.length) {
 				var source = [];
