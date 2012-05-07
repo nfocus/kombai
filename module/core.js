@@ -1,3 +1,5 @@
+
+
 	/**
 	 * Created by Minh Nguyen (http://vnjs.net);
 	 * Version: 1.0;
@@ -27,19 +29,26 @@
 			return {
 				source: data,
 				
-				isExists: function() {
-					var src = this.source;
-					return isExists(src);
-				},
+				filter: function() {},
 				
 				notExists: function() {
 					var src = this.source;
 					return !isExists(src);
 				},
 				
+				isExists: function() {
+					var src = this.source;
+					return isExists(src);
+				},
+				
 				isArray: function() {
 					var src = this.source;
 					return (isExists(src) && src.constructor == Array);
+				},
+				
+				isBlank: function() {
+					var src = this.source;
+					return (this.isString() && "" == src.replace(/^\s+|\s+$/g, ""));
 				},
 				
 				isBoolean: function() {
@@ -83,11 +92,6 @@
 				isString: function() {
 					var src = this.source;
 					return (isExists(src) && "string" === typeof src);
-				},
-				
-				isBlank: function() {
-					var src = this.source;
-					return (this.isString() && "" == src.replace(/^\s+|\s+$/g, ""));
 				},
 				
 				isRegExp: function() {
@@ -166,7 +170,7 @@
 					for (var i = 0; i < arg.length; ++i) {
 						source = arg[i];
 						for (var o in source) {
-							if (!Object.prototype[o]) {
+							if (source.hasOwnProperty(o)) {
 								if (assert(source[o]).isObject(true)) {
 									assert(target[o]).isObject() || (target[o] = {});
 									copy(source[o]).to(target[o]);
@@ -182,6 +186,7 @@
 			}
 		};
 		
+		// using for html module;
 		function select(selection, context) {
 			if (assert(selection).isBlank()) return null;
 			var root = context ? context : currentDocument;
@@ -199,20 +204,21 @@
 		
 		// store temporary data;
 		var temporary = {
+			variable: {},
+			object: {},
+			number: {},
+			list: null,
 			method: {
 				assert: assert,
 				copy: copy,
 				select: select
-			},
-			list: null,
-			number: {},
-			object: {},
-			variable: {}
+			}
 		};
 		
-		
-		// for extend from user;
-		extension = {
+		// store class;
+		var factory = {};
+		// for extend api;
+		var extension = {
 				common: {
 					filter: function(data) {
 						return true;
@@ -233,9 +239,6 @@
 				array: {
 					filter: function(data) {
 						return assert(data).isArray();
-					},
-					mix: function() {
-						return this.source.sort();
 					}
 				},
 				event: {
@@ -301,11 +304,11 @@
 									}
 								}
 							}
+							// reset all class;
+							factory = {};
 						}
 					},
-					/*
-					 *  create a new module from an object; 
-					 */
+					//create new module from an object; 
 					createModule: function(name) {
 						var isExtend = !(name in extension) && assert(this.source).isObject();
 						isExtend && (extension[name] = this.source);
@@ -337,16 +340,16 @@
 				assert(src).isFunction() && (temporary.method[id] = src);
 				return id;
 			},
-			callFunction: function(id) {
-				var func = temporary.method[id];
+			callFunction: function(name) {
+				var func = temporary.method[name];
 				if (assert(func).isFunction()) {
 					return func;
 				}
 				return function(){};
 			},
-			unstoreFunction: function(id) {
-				if (assert(temporary.method[id]).isExists()) {
-					delete temporary.method[id];
+			unstoreFunction: function(name) {
+				if (assert(temporary.method[name]).isExists()) {
+					delete temporary.method[name];
 				}
 			},
 			getNumber: function() {
@@ -369,6 +372,9 @@
 				}
 				return extension[module];
 			},
+			getSelfName: function() {
+				return F_NAME;
+			},
 			getWindow: function() {
 				return currentWindow;
 			},
@@ -379,21 +385,19 @@
 				currentWindow = win;
 				currentDocument = win.document;
 			},
-			getSelfName: function() {
-				return F_NAME;
-			},
-			getNotifyMessage: function() {
-				return notify;
-			},
 			clearNotify: function() {
 				notify = [];
 				return this;
+			},
+			getNotifyMessage: function() {
+				return notify;
 			}
 		};
 		
 		
+		
 		function finish(data) {
-			
+			// just for build string;
 			if (!arguments.length) {
 				var source = [];
 				return function(src) {
@@ -406,15 +410,32 @@
 				};
 			}
 			
-			var cover = function(){};
+			var label = [];
+			
 			for (var i in extension) {
 				if (assert(extension[i]["filter"]).isFunction()) {
-					extension[i]["filter"](data) && copy(extension[i]).to(cover);
+					extension[i]["filter"](data) && label.push(i);
 				}
 			}
-			assert(temporary.list).isList() && (cover.list = temporary.list);
+			
+			var clazz = label.join("-");
+			
+			if (!factory[clazz]) {
+				// create new constructure;
+				factory[clazz] = function(src) {
+					this.source = src;
+				};
+				// add interface for new class;
+				for (var i = 0; i < label.length; ++i) {
+					copy(extension[label[i]]).to(factory[clazz]["prototype"]);
+				}
+				copy(assert({})).to(factory[clazz]["prototype"]);
+			}
+			
+			var cover = new factory[clazz](data);
+			temporary.list && (cover.list = temporary.list);
 			temporary.list = null;
-			return copy(assert(data)).to(cover);
+			return cover;
 		};
 		
 		copy(utility).to(finish);
