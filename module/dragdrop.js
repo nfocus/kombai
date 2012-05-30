@@ -115,7 +115,7 @@
 					});
 					return this;
 			},
-			wipe: function(config) {
+			swipe: function(config) {
 				this.each(function() {
 					var ADN = this;
 					var setting = {
