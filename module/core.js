@@ -410,6 +410,8 @@
 				};
 			}
 			
+			data.filter && data.source && (data = data.source);
+			
 			var label = [];
 			
 			for (var i in extension) {
