@@ -419,6 +419,8 @@
 				};
 			}
 			
+			data.filter && data.source && (data = data.source);
+			
 			var label = [];
 			
 			for (var i in extension) {
@@ -1359,7 +1361,7 @@
 					});
 					return this;
 			},
-			wipe: function(config) {
+			swipe: function(config) {
 				this.each(function() {
 					var ADN = this;
 					var setting = {
