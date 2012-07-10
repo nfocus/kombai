@@ -410,7 +410,7 @@
 				};
 			}
 			
-			data.filter && data.source && (data = data.source);
+			data && data.source && (data = data.source);
 			
 			var label = [];
 			
