@@ -7,7 +7,7 @@
 		"module/html.js",
 		"module/dragdrop.js",
 		"module/canvas.js",
-		"moduletransform.js",
+		"module/transform.js",
 		"plugin/debug.js"
 	);
 	

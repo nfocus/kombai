@@ -14,6 +14,8 @@
 		var setting = {
 			viewCover: false,
 			zIndex: 999,
+			width: "64%",
+			height: "300px",
 			align: ["left", "right", "middle"][2]
 		},
 		style = {
@@ -113,7 +115,7 @@
 				(setting.align == "left") && f({position: "absolute", left: "0px"}).copyTo(style);
 				(setting.align == "right") && f({position: "absolute", right: "0px"}).copyTo(style);
 				(setting.align == "middle") && f({position: "relative"}).copyTo(style);
-				f({zIndex: setting.zIndex}).copyTo(style);
+				f({zIndex: setting.zIndex, width: setting.width}).copyTo(style);
 				
 				var src = (setting.viewCover == true) ?
 							this : (this.list && this.list.length) ? this.list : this.source;
@@ -210,7 +212,7 @@
 				});
 				
 				var content = f.createElement({
-					style: {background: "#848484", borderTop: "2px solid black", height: "300px", width: "100%", overflow: "auto"},
+					style: {background: "#848484", borderTop: "2px solid black", height: setting.height, width: "100%", overflow: "auto"},
 					event: {
 						"mousedown": function(event) {
 							var evt = event || currentWindow.event;
