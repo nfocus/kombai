@@ -1316,7 +1316,7 @@
 									document.onmousemove = mouseMove;
 									document.onmouseup = mouseUp;
 								}
-								proxy.onmouseup = mouseUp;
+								
 								return false;
 							}
 						};
@@ -2065,7 +2065,7 @@
 		
 		var publicity = {
 				transform: function(r) {
-					this.update().each(function(ADN){
+					this.each(function(){
 						var	styleName = ["background", "backgroundColor", "backgroundImage", "backgroundPosition", "backgroundRepeat", "bottom", "clip", "color", "font", "fontSize", "height", "left", "letterSpacing", "lineHeight", "listStyleImage", "listStylePosition", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft", "opacity", "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "right", "top", "width", "wordSpacing", "zIndex"];
 						var setting = {
 							start: r.start || function() {},
@@ -2075,6 +2075,7 @@
 							divide: r.divide || 100,
 							transition: r.transition || function(x) {return x * (2 - x)}
 						};
+						var ADN = this;
 						// albus is older name of this libraly;
 						ADN.albus = ADN.albus ? ADN.albus : {"timer": []};
 						ADN.albus.run = setting.on;
@@ -2156,7 +2157,7 @@
 		var childObject = [];			
 		
 		function discover(o) {
-			var node = f.createElement({style:{margin: "10px"}});
+			var node = f.createElement({style:{margin: "28px 17px"}});
 			f(o).notExists() &&  (o = 'null');
 			if (f(o).isString() || f(o).isNumber()) {
 				node.setHTML(o);
@@ -2166,10 +2167,10 @@
 				f(o).isObject() && (v = "{}");
 				node.setHTML(
 					f()("<div style='clear:left; line-height: 18px;'>")
-					 ("<div style='color: #9b1a00; overflow: hidden; width: 246px; float: left;'>")
+					 ("<div style='color: #9b1a00; overflow: hidden; width: 324px; float: left;'>")
 						("<span style='padding-left: 18px;'>source</span>")
 					 ("</div>")
-					 ("<div style='padding-left: 246px;'><xmp> ")(v)("\n</xmp></div>")
+					 ("<div style='padding-left: 324px;'><xmp> ")(v)("\n</xmp></div>")
 					 ("</div>")()
 				);
 				try {
@@ -2181,19 +2182,19 @@
 						}
 						if (f(v).isObject()) {
 							childObject.push(v);
-							innerHTML = f()("<div style='width: 246px; overflow: hidden; float: left;'>")
+							innerHTML = f()("<div style='width: 324px; overflow: hidden; float: left;'>")
 												("<span style='margin-right: 6px;'>[+]</span>")
 												("<span style='color: #9b1a00; cursor: pointer;' onclick='")(F_NAME)('.callFunction("viewChild")(this, ')(childObject.length - 1)(")'> ")(p)("</span>")
 											("</div>")
-											("<div style='margin-left: 246px;'><xmp>Object {...}</xmp></div>")
+											("<div style='margin-left: 324px;'><xmp>Object {...}</xmp></div>")
 											("<div style='margin-left: 49px; display: none;'></div>")();
 						} else {
 							v = v.toString ? v.toString() : v;
-							innerHTML = f()("<div style='width: 246px; overflow: hidden; float: left;'>")
+							innerHTML = f()("<div style='width: 324px; overflow: hidden; float: left;'>")
 												("<span style='margin: 0px 12px 0px 8px;'>-</span>")
 												("<span style='color: #9b1a00'> ")(p)("</span>")
 											("</div>")
-											("<div style='margin-left: 246px;'><xmp> ")(v)("\n</xmp></div>")();
+											("<div style='margin-left: 324px;'><xmp> ")(v)("\n</xmp></div>")();
 						}
 						
 						node.addChild(
@@ -2277,7 +2278,8 @@
 					innerHTML: f()("<div style='float:left;'>")
 									("<span>[ + ]</span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(window).viewSource(true);'> window </span>")
-								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document).viewSource(true);'> / document </span>")
+								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document).viewSource(true);'> | document </span>")
+								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document.body).viewSource(true);'> | document.body </span>")
 								("</div>")(),
 					style: {padding: "3px 0px 0px 0px", height: "20px"}
 				});
@@ -2319,7 +2321,7 @@
 				var textarea = f.createElement({
 					innerHTML: textareaValue,
 					tagName: "textarea",
-					style: {height: "43px", width: "100%", overflow: "auto", marginLeft: "-3px"}
+					style: {height: "81px", width: "100%", overflow: "auto", marginLeft: "-3px", resize: "none"}
 				});
 				
 				var active = f.createElement({
@@ -2333,7 +2335,7 @@
 							textareaValue && eval(textareaValue);
 						}
 					},
-					style: {position: "absolute", cursor: "pointer", bottom: "-23px", right: "-3px",  padding: "2px 10px", background: "white", color: "black", border: "2px solid green"}
+					style: {position: "absolute", cursor: "pointer", bottom: "-23px", left: "-3px",  padding: "2px 10px", background: "white", color: "black", border: "2px solid green"}
 				});
 				
 				var content = f.createElement({

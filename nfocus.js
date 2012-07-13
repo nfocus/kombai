@@ -1316,7 +1316,7 @@
 									document.onmousemove = mouseMove;
 									document.onmouseup = mouseUp;
 								}
-								proxy.onmouseup = mouseUp;
+								
 								return false;
 							}
 						};

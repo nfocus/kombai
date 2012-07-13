@@ -138,7 +138,7 @@
 		
 		var publicity = {
 				transform: function(r) {
-					this.update().each(function(ADN){
+					this.each(function(){
 						var	styleName = ["background", "backgroundColor", "backgroundImage", "backgroundPosition", "backgroundRepeat", "bottom", "clip", "color", "font", "fontSize", "height", "left", "letterSpacing", "lineHeight", "listStyleImage", "listStylePosition", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft", "opacity", "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "right", "top", "width", "wordSpacing", "zIndex"];
 						var setting = {
 							start: r.start || function() {},
@@ -148,6 +148,7 @@
 							divide: r.divide || 100,
 							transition: r.transition || function(x) {return x * (2 - x)}
 						};
+						var ADN = this;
 						// albus is older name of this libraly;
 						ADN.albus = ADN.albus ? ADN.albus : {"timer": []};
 						ADN.albus.run = setting.on;
