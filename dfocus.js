@@ -1339,7 +1339,7 @@
 							document.onmousemove = null;
 							document.ontouchmove = null;
 							document.ontouchend = null;
-							proxy.onmouseup = null;
+							document.onmouseup = null;
 							setting.onDrop.call(proxy, evt);
 							return false;
 						};

@@ -1,0 +1,299 @@
+<html>
+	<head>
+		<title>canvas demo.</title>
+		<meta content="text/html; charset=utf-8" http-equiv="content-type">
+		<meta content="auto complete, suggestion" name="description">
+		<script type="text/javascript" src="../dfocus.js"></script>
+		<style type="text/css">
+			html, body {
+				position: relative;
+				margin: 0px;
+				padding: 0px;
+			}
+			#cover {
+				width: 640px;
+				margin: auto;
+			}
+			#group-func {
+				border: 2px solid red;
+				height: 300px;
+			}
+			#config-func {
+				overflow: auto;
+				height: 600px;
+				border: 2px solid red;
+			}
+			#result-func {
+				background: rgba(0, 0, 0, 0.5);
+				position: absolute;
+				display: none;
+				top: 0px;
+				left: 0px;
+				right: 0px;
+				bottom: 0px;
+			}
+			#result-func .margin {
+				margin: 100px auto;
+				position:  relative;
+				width: 600px;
+				height: 600px;
+			}
+			#result-func .result {
+				width: 600px;
+				height: 600px;
+				background: white;
+			}
+			#close {
+				position: absolute;
+				top: 0px;
+				right: 0px;
+				width: 30px;
+				height: 30px;
+			}
+		</style>
+		</head>
+		<body onload="init();">
+			<div id="cover">
+				<div id="group-func" class="group-func">
+				</div>
+				<button id="draw" onclick="plot();">draw</button>
+				<button id="refesh" onclick="refesh();">refesh</button>
+				<div id="config-func" class="config-func">
+				</div>
+				<div id="result-func" class="result-func">
+					<div class="margin">
+						<button id="close" onclick="remove();">X</button>
+						<canvas class="result" width="600px" height="600px"></canvas>
+					</div>
+				</div>	
+			</div>
+			<script type="text/javascript">
+				
+				var funcs = [
+					{
+						t: [0, 2*Math.PI],
+						x: function(t) {return 30*Math.cos(t);},
+						y: function(t) {return 30*Math.sin(t);}
+					},
+					{
+						t: [0, 2*Math.PI],
+						x: function(t) {return 30*Math.sin(t);},
+						y: function(t) {return 30*Math.cos(t);}
+					},
+					{
+						t: [0, 2*Math.PI],
+						x: function(t) {return 15*Math.cos(t);},
+						y: function(t) {return 30*Math.sin(t);}
+					},
+					{
+						t: [0, 2*Math.PI],
+						x: function(t) {return 30*Math.cos(t);},
+						y: function(t) {return 15*Math.sin(t);}
+					},
+					{
+						t: [0, 2*Math.PI],
+						x: function(t) {return 30*Math.cos(t);},
+						y: function(t)	{return 0;}
+					},
+					{
+						t: [0, 2*Math.PI],
+						x: function(t) {return 0;},
+						y: function(t)	{return 30*Math.sin(t);}
+					},
+					{
+						t: [0, 2*Math.PI],
+						x: function(t) {return 30*Math.sin(t);},
+						y: function(t) {return 30*Math.cos(t)*Math.sin(t);}
+					},
+					{
+						t: [0, 2*Math.PI],
+						x: function(t) {return 30*Math.cos(t)*Math.sin(t);},
+						y: function(t) {return 30*Math.sin(t);}
+					},
+					{
+						t: [0, 2*Math.PI],
+						x: function(t) {return 30*Math.cos(t)*Math.sin(t);},
+						y: function(t) {return 30*Math.cos(3*t);}
+					}
+				];
+
+				function init() {
+					createElement();
+				}
+				
+				function createElement() {
+					var groupFunc = Focus("#group-func");
+					
+					Focus(funcs).each(function() {
+						var kanvas = Focus.createElement({
+							tagName: "canvas",
+							style: {
+								background: "white",
+								margin: "10px",
+								border: "1px solid green"
+							},
+							attribute: {
+								width: "100px",
+								height: "100px"
+							}
+						}).appendTo(groupFunc.list[0]);
+						
+						var context = kanvas.source.getContext("2d");
+						context.lineWidth = 2;
+						context.translate(50, 50);
+						context.strokeStyle = "red";
+						context.beginPath();
+						for (var i = this.t[0]; i <= this.t[1]; i += 0.01) {
+							context.lineTo( this.x(i), this.y(i) );
+						}
+						context.stroke();
+
+						var config = this;
+
+						kanvas.setDragable({
+							onDrop: function() {
+								Focus(this).transform({
+									top: "0px",
+									left: "0px",
+									divide: 36,
+									transition: Focus.transition[1]
+								});
+
+								var top = parseInt(Focus(this).getStyle("top"));
+								if (top > 320 && top < 960) {
+									createConfigFunc(config, this);
+								}
+							}
+						});
+					});
+				}
+
+				function createConfigFunc(config, kanvas) {
+					var configDiv = Focus("#config-func");
+					
+					var newDiv = Focus.createElement({
+						tagName: "div",
+						style: {
+							border: "2px solid green",
+							margin: "20px auto",
+							width: "200px",
+							height: "200px",
+							position: "relative",
+							background: "url(" + kanvas.toDataURL() + ") no-repeat center center",
+							backgroundSize: "cover"
+						}
+					});
+					config.a = 120;
+					config.s = 1;
+					newDiv.source.func = config;
+					configDiv.addChild(newDiv);
+					
+					var range = Focus.createElement({
+						tagName: "input",
+						event: {
+							change: function() {
+								var newSize = this.value;
+								newDiv.setStyle({
+									width: newSize + "px",
+									height: newSize + "px"
+								});
+								newDiv.source.func.a = (0.6*this.value).toFixed(2);
+							}
+						},
+						style: {
+							position: "absolute",
+							left: "50%",
+							top: "20px",
+							width: "100px",
+							margin: "auto -50px"
+						},
+						attribute: {
+							type: "range",
+							min: 120,
+							max: 600,
+							value: 200
+						}
+					});
+
+					var speed = Focus.createElement({
+						tagName: "input",
+						event: {
+							change: function()  {
+								newDiv.source.func.s = (1*this.value).toFixed(2);
+							}
+						},
+						style: {
+							position: "absolute",
+							left: "50%",
+							bottom: "20px",
+							width: "100px",
+							margin: "auto -50px"
+						},
+						attribute: {
+							type: "range",
+							step: 0.1,
+							min: 1,
+							max: 11,
+							value: 1
+						}
+					});
+
+					newDiv.addChild(range);
+					newDiv.addChild(speed);
+
+				}
+
+				function refesh() {
+					Focus("#config-func").setHTML("");
+				}
+
+				var timer;
+
+				function remove() {
+					clearInterval(timer);
+					Focus("#result-func").hide();
+					Focus("#result-func .result").setAttribute({width: "600px", height: "600px"});
+				}
+
+				function plot() {
+					var allFunc = Focus("#config-func div");
+					var fn = [];
+					allFunc.each(function() {
+						this.func && fn.push(this.func);
+						console.log(this.func);
+					});
+					if (fn.length) {
+						var kanvas = Focus(".result").list[0];
+						Focus("#result-func").show();
+						var context = kanvas.getContext("2d");
+						context.lineWidth = 2;
+						context.translate(300, 300);
+						context.strokeStyle = "red";
+						
+						context.beginPath();
+
+						var t = 0, c = 2*Math.PI;
+						function running() {
+							if (t > c) clearInterval(timer);
+							t += 0.001;
+							
+							var f, x = 0, y = 0;
+							
+							for (var i = 0; i < fn.length; ++i) {
+								
+								f = fn[i];
+								x += (f.a/60)*f.x(c * t * f.s);
+								y += (f.a/60)*f.y(c * t * f.s);
+								
+							}
+							context.lineTo(x, y);
+							context.stroke();
+						}
+
+						timer = setInterval(running, 10);
+						
+					}
+				}
+			</script>
+		</body>
+</html>
