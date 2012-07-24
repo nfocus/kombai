@@ -28,18 +28,14 @@
 		</div> 
 		<script type="text/javascript"> 
 			
-			var resultTest = Focus.takeTest("test 'append' method")({
+			var resultTest = Focus.takeTest("test 'remove' method")({
 				"select": function() {
-					var newNode = Focus.createElement({
-						tagName: "div",
-						className: "ga",
-						innerHTML: Focus.getNumber()
-					});
-					Focus(newNode).appendTo(".box");
 
-					var newNodies = Focus(".ga").select();
+					Focus(".child").remove();
 					
-					Focus(newNodies.length).equal(4, "Must have a look in html.appendTo method");
+					var dies = Focus(".child");
+
+					Focus(Focus(dies.select).isFunction()).equal(false, "Must have a look in html.remove method");
 				}
 			});
 			
