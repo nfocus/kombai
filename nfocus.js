@@ -10,9 +10,8 @@
 
 
 	/**
-	 * Created by Minh Nguyen (http://vnjs.net);
+	 * Created by Minh Nguyen;
 	 * Version: 1.0;
-	 * License: GPL license;
 	 * Email: mnx2012@gmail.com;
 	 */
 	
@@ -80,9 +79,9 @@
 					return (isExists(src) && src instanceof Function);	
 				},
 				
-				isList: function() {
-					var src = this.source;
-					return (this.isArray() || this.isObject() && src.length);
+				isNodeList: function() {
+					var src = isExists(this.source) ? String(this.source.constructor) : "";
+					return (src != src.replace("NodeList", ""));
 				},
 				
 				isNumber: function() {
@@ -262,12 +261,17 @@
 				},
 				html: {
 					filter: function(data) {
-						if (assert(data).isElement()) {
+						if (assert(data).isNodeList()) {
+							temporary.list = data;
+							return true;
+						} else if (assert(data).isElement()) {
 							temporary.list = [data];
 							return true;
 						} else if (assert(data).isString()) {
 							temporary.list = select(data);
-							if (temporary.list) return true;
+							if (temporary.list) {
+								return true;
+							}
 						}
 						return false;
 					},
@@ -279,11 +283,6 @@
 							}
 						}
 						return this;
-					}
-				},
-				list: {
-					filter: function(data) {
-						return assert(data).isList();
 					}
 				},
 				number: {
@@ -473,44 +472,33 @@
 			currentWindow = f.getWindow(),
 			currentDocument = currentWindow.document;
 		
-		function isReady(XHR) {
-			return (XHR.readyState % 4 == 0);
+		function isReady(xhr) {
+			return (xhr.readyState % 4 == 0);
 		}
 		
-		function isRequest(XHR) {
-			return XHR.readyState < 4;
+		function isRequest(xhr) {
+			return xhr.readyState < 4;
 		}
 		
-		function isComplete(XHR) {
-			return XHR.readyState == 4;
+		function isComplete(xhr) {
+			return xhr.readyState == 4;
 		}
 		
-		function isSuccess(XHR) {
+		function isSuccess(xhr) {
 			try {
-				return XHR.status == 200;
+				return xhr.status == 200;
 			} catch(e) {
 				return false;
 			}
 		}
 		
 		function onProcess(func, xhr) {
-			if (func instanceof Function) {
+			if (f(func).isFunction()) {
 				func.call(xhr);
 			} else {
 				eval(xhr);
 			}
 		}
-		
-		function encode(s) {
-			if (s === null || s == undefined) {
-				s = "|";
-			}
-			var l = s.length, a = [];
-			for (var i = 0; i < l; ++ i) {
-				a.push(s.charCodeAt(i));
-			}
-			return a.join("");
-		};
 		
 		function createXMLHttpRequest() {
 			if (window.ActiveXObject) {
@@ -563,9 +551,9 @@
 					}
 				}
 				
-				function onStateChange(XHR) {
-					if (isSuccess(XHR)) {
-						onProcess(setting.onSuccess, XHR);
+				function onStateChange(x) {
+					if (isSuccess(x)) {
+						onProcess(setting.onSuccess, x);
 					} else {
 						if (setting.retry) {
 							option.delay += option.delay;
@@ -577,7 +565,7 @@
 								setting.delay
 							);
 						} else {
-							onProcess(setting.onFailure, XHR);
+							onProcess(setting.onFailure, x);
 						}
 					}
 					delete xhr.onreadystatechange;
@@ -615,6 +603,7 @@
 		var f = window[F_NAME],
 			copy = f.callFunction('copy'),
 			assert = f.callFunction('assert'),
+			select = f.callFunction('select'),
 			currentWindow = f.getWindow(),
 			currentDocument = currentWindow.document;
 		
@@ -747,17 +736,17 @@
 				}
 				return currentDocument.body.clientWidth;
 			},
-			addEvent: function(obj, evt) {
+			addEvent: function(element, evt) {
 				for (var o in evt) {
 					if (evt.hasOwnProperty(o)) {
-						if (obj.addEventListener) {
-							obj.addEventListener(o, evt[o], false);
-						} else if (obj.attachEvent) {
-							obj.attachEvent("on" + o, evt[o]);
+						if (element.addEventListener) {
+							element.addEventListener(o, evt[o], false);
+						} else if (element.attachEvent) {
+							element.attachEvent("on" + o, evt[o]);
 						}
 					}
 				}
-				return f(obj);
+				return f(element);
 			},
 			getTime: function() {
 				return new Date().getTime();
@@ -844,16 +833,10 @@
 				this.source = this.source.replace(/^\s+|\s+$/g, "");
 				return (opt === true) ? this.source : this;
 			},
-			urlEncode: function(opt) {
-				return (opt === true) ? encodeURIComponent(this.source) : this;
-			},
-			urlDecode: function(opt) {
-				return (opt === true) ? decodeURIComponent(this.source) : this;
-			},
 			toRGB: function(opt) {
 				/*
 					Convert text color to rgb value.
-					example : Focus("green").toColor(true);
+					example : Focus("green").toRGB(true);
 					return: rgb(0, 128, 0);
 				*/
 				var colorName = this.source;
@@ -877,6 +860,12 @@
 				this.source = value;
 				return (opt === true) ? this.source : this;
 			},
+			urlEncode: function(opt) {
+				return (opt === true) ? encodeURIComponent(this.source) : this;
+			},
+			urlDecode: function(opt) {
+				return (opt === true) ? decodeURIComponent(this.source) : this;
+			},
 			typeofStyle: function() {
 				var style = this.source;
 				switch (style) {
@@ -896,6 +885,25 @@
 		f(string).addTo("string");
 		
 		var html = {
+			select: function(selection) {
+				if (!arguments.length) {
+					return this.list;
+				} else {
+					var i = 0, aE = [], list = [];
+					// for detect nodelist;
+					function NodeList() {};
+					aE.constructor = NodeList;
+					this.each(function() {
+						list = select(selection, this);
+						if (list && list.length) {
+							for(i = 0; i < list.length; ++i) {
+								aE.push(list[i]);
+							}
+						}
+					});
+					return f(aE);
+				}
+			},
 			appendTo: function(element) {
 				this.each(function() {
 					assert(element).isElement() && element.appendChild(this);

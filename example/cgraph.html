@@ -11,16 +11,22 @@
 				padding: 0px;
 			}
 			#cover {
-				width: 640px;
+				width: 960px;
 				margin: auto;
 			}
 			#group-func {
 				border: 2px solid red;
-				height: 300px;
+				height: 620px;
+				width: 303px;
+				float: right;
+				overflow-y: auto;
+				overflow-x: hidden;
 			}
 			#config-func {
 				overflow: auto;
-				height: 600px;
+				height: 620px;
+				width: 640px;
+				float: left;
 				border: 2px solid red;
 			}
 			#result-func {
@@ -34,7 +40,7 @@
 			}
 			#result-func .margin {
 				margin: 100px auto;
-				position:  relative;
+				position: relative;
 				width: 600px;
 				height: 600px;
 			}
@@ -50,15 +56,51 @@
 				width: 30px;
 				height: 30px;
 			}
-		</style>
+			input[type="range"] {
+				-webkit-appearance: none;
+				background-color: black;
+				height: 2px;
+			}
+			.config {
+				border: 1px solid green;
+				margin: auto;
+				position: relative;
+			}
+			.config .preview {
+				width: 150px;
+				height: 150px;
+				float: left;
+				background-size: cover;
+			}
+			.axs output {
+				border: 1px solid gray; 
+				width: 40px;
+				display:inline-block;
+				height: 18px;
+			}
+			.axs div {
+				height: 30px;
+			}
+
+			.config .close {
+				position: absolute;
+				cursor: pointer;
+				padding: 5px;
+				top: 0px;
+				right: 0px;
+				display: inline-block;
+				border: 1px solid red;
+			}
+			</style>
 		</head>
 		<body onload="init();">
 			<div id="cover">
-				<div id="group-func" class="group-func">
-				</div>
 				<button id="draw" onclick="plot();">draw</button>
 				<button id="refesh" onclick="refesh();">refesh</button>
-				<div id="config-func" class="config-func">
+				<div class="layout">
+					<div id="config-func" class="config-func"></div>
+					<div id="group-func" class="group-func"></div>
+					<div style="clear:both;"></div>
 				</div>
 				<div id="result-func" class="result-func">
 					<div class="margin">
@@ -70,50 +112,331 @@
 			<script type="text/javascript">
 				
 				var funcs = [
+					// 7085 >>> S1: 0.67 , C1: 0.33 , S2: 0.67 , C2: 0.00 => giot nuoc
+					// S1: 1.00 , C1: 2.00 , S2: 1.00 , C2: 0.33
+					// S1: 0.20 , C1: 0.75 , S2: 0.75 , C2: 0.75 => den chup;
+					// S1: 0.20 , C1: 1.00 , S2: 0.00 , C2: 2.00 => den chup;
+					// 2188 >>> S1: 0.25 , C1: 0.75 , S2: 0.00 , C2: 1.00 => hoa tulip
+					// 1142 >>> S1: 0.20 , C1: 1.00 , S2: 0.40 , C2: 0.80
+					// 2243 >>> S1: 0.25 , C1: 0.75 , S2: 0.50 , C2: 1.00 => cay nam
+					// 2241 >>> S1: 0.25 , C1: 0.75 , S2: 0.50 , C2: 0.75 => hoa phat giao
+					//3271 >>> S1: 0.33 , C1: 0.50 , S2: 0.00 , C2: 0.33 => mui
+					// S1: 0.40 , C1: 0.20 , S2: 0.20 , C2: 0.00 => dong ho cat
+					//  S1: 0.50 , C1: 0.50 , S2: 0.33 , C2: 1.00 => bo canh cung;
+
+					//6090 >>> S1: 0.50 , C1: 0.67 , S2: 0.33 , C2: 0.67
+					// 6201 >>> S1: 0.50 , C1: 0.75 , S2: 0.25 , C2: 0.75 => cu hanh
+					// 6791 >>> S1: 0.67 , C1: 0.20 , S2: 0.20 , C2: 0.33 => vay
+					// 6853 >>> S1: 0.67 , C1: 0.20 , S2: 0.67 , C2: 2.00 => hoa muop
+
+
+					//292 >>> S1: 0.20 , C1: 0.25 , S2: 0.40 , C2: 0.50 =>> sinsin 
+					//2483 >>> S1: 0.25 , C1: 1.00 , S2: 0.50 , C2: 0.75
+					// 2943 >>> S1: 0.33 , C1: 0.25 , S2: 0.33 , C2: 0.50 => canh buom
+					//4281 >>> S1: 0.40 , C1: 0.25 , S2: 0.40 , C2: 0.20
+					// 4618 >>> S1: 0.40 , C1: 0.50 , S2: 0.20 , C2: 0.80
+					// 5596 >>> S1: 0.50 , C1: 0.25 , S2: 0.25 , C2: 0.75 => tam giac
+					// 5629 >>> S1: 0.50 , C1: 0.25 , S2: 0.50 , C2: 0.75 => ky di
+					// 6457 >>> S1: 0.50 , C1: 1.00 , S2: 0.33 , C2: 2.00 => canh buom 2
+					// 7300 >>> S1: 0.67 , C1: 0.50 , S2: 0.33 , C2: 0.67 => cu toi
+					// 605 >>> S1: 2.00 , C1: 2.00 , S2: 0.67 , C2: 2.00 => alien
+					
 					{
-						t: [0, 2*Math.PI],
-						x: function(t) {return 30*Math.cos(t);},
-						y: function(t) {return 30*Math.sin(t);}
+						x: function(t) {return  30*Math.pow(2, Math.sin(t)) - 30},
+						y: function(t) {return  30*Math.cos(t)*Math.sin(t/2);}
 					},
 					{
-						t: [0, 2*Math.PI],
-						x: function(t) {return 30*Math.sin(t);},
-						y: function(t) {return 30*Math.cos(t);}
+						x: function(t) {
+							return 30*Math.sin(t) + 2*Math.sin(7*t);
+						},
+						y: function(t) {
+							return 30*Math.cos(t) - 2*Math.cos(7*t);
+						}
+					},
+
+
+
+					{
+						x: function(t) {
+							return (30*Math.sin(t) - 10*Math.sin(2*t)*Math.sin(2*t));
+						},
+						y: function(t) {
+							return (30*Math.cos(t) - 10*Math.cos(2*t)*Math.sin(2*t));
+						}
 					},
 					{
-						t: [0, 2*Math.PI],
-						x: function(t) {return 15*Math.cos(t);},
-						y: function(t) {return 30*Math.sin(t);}
+						x: function(t) {
+							return (30*Math.sin(t) - 10*Math.sin(2*t)*Math.sin(2*t));
+						},
+						y: function(t) {
+							return (30*Math.cos(t) + 10*Math.cos(2*t)*Math.sin(2*t));
+						}
+					},
+
+
+
+					{
+						x: function(t) {return  30*Math.sin(t)*Math.cos(t/3);},
+						y: function(t) {return  30*Math.cos(t)*Math.cos(t/3);}
 					},
 					{
-						t: [0, 2*Math.PI],
-						x: function(t) {return 30*Math.cos(t);},
-						y: function(t) {return 15*Math.sin(t);}
+						x: function(t) {
+							return (20*Math.sin(t) - 10*Math.sin(t)*Math.sin(t));
+						},
+						y: function(t) {
+							return (20*Math.cos(t) + 10*Math.cos(t)*Math.sin(t));
+						}
+					},
+
+					{
+						x: function(t) {return  30*Math.sin(2*t/5)*Math.cos(t/5);},
+						y: function(t) {return  30*Math.cos(t/5)*Math.cos(2*t/5);}
 					},
 					{
-						t: [0, 2*Math.PI],
-						x: function(t) {return 30*Math.cos(t);},
-						y: function(t)	{return 0;}
+						x: function(t) {return  30*Math.sin(t/3)*Math.cos(t);},
+						y: function(t) {return   30*Math.cos(2*t/3)*Math.cos(2*t/3);}
+					},
+
+
+					{
+						x: function(t) {return  30*Math.sin(t)*Math.cos(t);},
+						y: function(t) {return  30*Math.sin(t)*Math.cos(2*t);}
 					},
 					{
-						t: [0, 2*Math.PI],
-						x: function(t) {return 0;},
-						y: function(t)	{return 30*Math.sin(t);}
+						x: function(t) {return  30*Math.sin(t/3)*Math.cos(t);},
+						y: function(t) {return   30*Math.sin(2*t)*Math.cos(t);}
+					},
+
+
+
+					{
+						x: function(t) {return  30*Math.sin(3*t/4)*Math.cos(t);},
+						y: function(t) {return  30*Math.sin(t);}
 					},
 					{
-						t: [0, 2*Math.PI],
-						x: function(t) {return 30*Math.sin(t);},
-						y: function(t) {return 30*Math.cos(t)*Math.sin(t);}
+						x: function(t) {return  30*Math.sin(1*t/2)*Math.cos(2*t);},
+						y: function(t) {return  30*Math.sin(t/2)*Math.cos(t);}
+					},
+
+					{
+						x: function(t) {return  30*Math.sin(2*t)*Math.cos(t/2);},
+						y: function(t) {return  30*Math.sin(2*t);}
 					},
 					{
-						t: [0, 2*Math.PI],
-						x: function(t) {return 30*Math.cos(t)*Math.sin(t);},
-						y: function(t) {return 30*Math.sin(t);}
+						x: function(t) {return  30*Math.sin(t/2)*Math.cos(t);},
+						y: function(t) {return  30*Math.sin(t);}
+					},
+
+					// end test function;
+
+
+					{
+						x: function(t) {
+							// x = (0 |--> 4);
+							var c = 2*Math.PI;
+							var x = t - Math.floor(t/c) * c;
+							x = 2*x/Math.PI;
+							x == 0 && (x = 4);
+
+							if (false) {
+								return 0;
+							} else if (Math.sin(t) > 0 && Math.cos(t) > 0) {
+								// 0 < t && t < Math.PI/2;
+								return 30*x;
+							} else if (Math.sin(t) > 0 && Math.cos(t) < 0) {
+								// Math.PI/2 <= t && t < Math.PI;
+								return 30*(2 - x);
+							} else if (Math.sin(t) < 0 && Math.cos(t) < 0) {
+								// Math.PI <= t && t < 3*Math.PI/2
+								return 30*(2 - x);
+							} else if (Math.sin(t) < 0 && Math.cos(t) > 0 ) {
+								return 30*(x - 4);
+							}
+						},
+						y: function(t) {
+							// x = (0 |--> 4);
+							var c = 2*Math.PI;
+							var x = t - Math.floor(t/c) * c;
+							x = 2*x/Math.PI;
+							x == 0 && (x = 4);
+							
+							if (false) {
+								return 0;
+							} else if (Math.sin(t) >= 0 && Math.cos(t) >= 0) {
+								return 30*(1 - x);
+							} else if (Math.sin(t) >= 0 && Math.cos(t) <= 0) {
+								return 30*(1 - x);
+							} else if (Math.sin(t) <= 0 && Math.cos(t) <= 0) {
+								return 30*(x - 3);
+							} else if (Math.sin(t) <= 0 && Math.cos(t) >= 0) {
+								return 30*(x - 3);
+							}
+						}
 					},
 					{
-						t: [0, 2*Math.PI],
-						x: function(t) {return 30*Math.cos(t)*Math.sin(t);},
-						y: function(t) {return 30*Math.cos(3*t);}
+						x: function(t) {
+							// x = (0 |--> 4);
+							var c = 2*Math.PI;
+							var x = t - Math.floor(t/c) * c;
+							x = 2*x/Math.PI;
+							x == 0 && (x = 4);
+
+							if (false) {
+								return 0;
+							} else if (Math.sin(t) > 0 && Math.cos(t) > 0) {
+								// 0 < t && t < Math.PI/2;
+								return -30*x;
+							} else if (Math.sin(t) > 0 && Math.cos(t) < 0) {
+								// Math.PI/2 <= t && t < Math.PI;
+								return -30*(2 - x);
+							} else if (Math.sin(t) < 0 && Math.cos(t) < 0) {
+								// Math.PI <= t && t < 3*Math.PI/2
+								return -30*(2 - x);
+							} else if (Math.sin(t) < 0 && Math.cos(t) > 0 ) {
+								return -30*(x - 4);
+							}
+						},
+						y: function(t) {
+							// x = (0 |--> 4);
+							var c = 2*Math.PI;
+							var x = t - Math.floor(t/c) * c;
+							x = 2*x/Math.PI;
+							x == 0 && (x = 4);
+							
+							if (false) {
+								return 0;
+							} else if (Math.sin(t) >= 0 && Math.cos(t) >= 0) {
+								return 30*(1 - x);
+							} else if (Math.sin(t) >= 0 && Math.cos(t) <= 0) {
+								return 30*(1 - x);
+							} else if (Math.sin(t) <= 0 && Math.cos(t) <= 0) {
+								return 30*(x - 3);
+							} else if (Math.sin(t) <= 0 && Math.cos(t) >= 0) {
+								return 30*(x - 3);
+							}
+						}
+					},
+
+					
+					{
+						x: function(t) {return 	15*Math.sin(t) - 15*Math.cos(2*t);},
+						y: function(t) {return 	30*Math.cos(t);}
+					},
+					{
+						x: function(t) {return -15*Math.sin(t) + 15*Math.cos(2*t);},
+						y: function(t) {return 	30*Math.cos(t);}
+					},
+
+					{
+						x: function(t) {return  15*Math.sin(4*t/2) - 15*Math.sin(t);},
+						y: function(t) {return  15*Math.cos(4*t/2) + 15*Math.cos(t);}
+					},
+					{
+						x: function(t) {return  -15*Math.sin(4*t/2) + 15*Math.sin(t);},
+						y: function(t) {return  15*Math.cos(4*t/2) + 15*Math.cos(t);}
+					},
+
+					
+
+					{
+						x: function(t) {return  30*Math.sin(t);},
+						y: function(t) {return  30*Math.cos(t);}
+					},
+					{
+						x: function(t) {return -30*Math.sin(t);},
+						y: function(t) {return  30*Math.cos(t);}
+					},
+					
+
+
+					{
+						x: function(t) {return  30*Math.sin(t);},
+						y: function(t) {return  15*Math.cos(t);}
+					},
+					{
+						x: function(t) {return -30*Math.sin(t);},
+						y: function(t) {return  15*Math.cos(t);}
+					},
+					
+
+
+					{
+						x: function(t) {return  15*Math.sin(t);},
+						y: function(t) {return  30*Math.cos(t);}
+					},
+					{
+						x: function(t) {return 15*Math.sin(t);},
+						y: function(t) {return  -30*Math.cos(t);}
+					},
+					
+
+					
+					{
+						x: function(t) {return  30*Math.cos(t)*Math.sin(t);},
+						y: function(t) {return  -Math.abs(30*Math.sin(t)) + 30}
+					},
+					{
+						x: function(t) {return -30*Math.cos(t)*Math.sin(t);},
+						y: function(t) {return -Math.abs(30*Math.cos(t)) +  30}
+					},
+
+
+
+
+					{
+						x: function(t) {return  0;},
+						y: function(t) {return  30*Math.cos(t);}
+					},
+					{
+						x: function(t) {return  0;},
+						y: function(t) {return  30*Math.sin(t);}
+					},
+					
+
+
+					{
+						x: function(t) {return  30*Math.sin(t);},
+						y: function(t) {return  0;}
+					},
+					{
+						x: function(t) {return  30*Math.cos(t);},
+						y: function(t) {return  0;}
+					},
+					
+
+
+
+					{
+						x: function(t) {return  30*Math.sin(t);},
+						y: function(t) {return  30*Math.cos(t)*Math.sin(t);}
+					},
+					{
+						x: function(t) {return -30*Math.sin(t);},
+						y: function(t) {return  30*Math.cos(t)*Math.sin(t);}
+					},
+					
+
+
+
+					{
+						x: function(t) {return  30*Math.cos(t)*Math.sin(t);},
+						y: function(t) {return  30*Math.sin(t);}
+					},
+					{
+						x: function(t) {return -30*Math.cos(t)*Math.sin(t);},
+						y: function(t) {return  30*Math.sin(t);}
+					},
+
+
+
+
+					{
+						x: function(t) {return  60*Math.cos(t)*Math.sin(t);},
+						y: function(t) {return  30*Math.cos(3*t);}
+					},
+					{
+						x: function(t) {return -60*Math.cos(t)*Math.sin(t);},
+						y: function(t) {return  30*Math.cos(3*t);}
 					}
 				];
 
@@ -128,9 +451,11 @@
 						var kanvas = Focus.createElement({
 							tagName: "canvas",
 							style: {
-								background: "white",
-								margin: "10px",
-								border: "1px solid green"
+								background: "#d8964c",
+								margin: "10px 18px",
+								cursor: "pointer",
+								border: "2px outset",
+								'border-radius': '10px'
 							},
 							attribute: {
 								width: "100px",
@@ -141,28 +466,22 @@
 						var context = kanvas.source.getContext("2d");
 						context.lineWidth = 2;
 						context.translate(50, 50);
-						context.strokeStyle = "red";
+						context.strokeStyle = "#7c3c20";
+						context.shadowColor = "whiteSmoke";
+						context.shadowBlur = 2;
+						context.shadowOffsetX = 1;
+						context.shadowOffsetY = 1;
 						context.beginPath();
-						for (var i = this.t[0]; i <= this.t[1]; i += 0.01) {
+						for (var i = 0, c = Math.PI*16; i <= c; i += 0.01) {
 							context.lineTo( this.x(i), this.y(i) );
 						}
 						context.stroke();
 
 						var config = this;
 
-						kanvas.setDragable({
-							onDrop: function() {
-								Focus(this).transform({
-									top: "0px",
-									left: "0px",
-									divide: 36,
-									transition: Focus.transition[1]
-								});
-
-								var top = parseInt(Focus(this).getStyle("top"));
-								if (top > 320 && top < 960) {
-									createConfigFunc(config, this);
-								}
+						kanvas.addEvent({
+							click: function() {
+								createConfigFunc(config, this);
 							}
 						});
 					});
@@ -170,77 +489,53 @@
 
 				function createConfigFunc(config, kanvas) {
 					var configDiv = Focus("#config-func");
-					
+					//"url(" + kanvas.toDataURL() + ") no-repeat center center"
 					var newDiv = Focus.createElement({
+						className: "config",
 						tagName: "div",
-						style: {
-							border: "2px solid green",
-							margin: "20px auto",
-							width: "200px",
-							height: "200px",
-							position: "relative",
-							background: "url(" + kanvas.toDataURL() + ") no-repeat center center",
-							backgroundSize: "cover"
-						}
+						innerHTML: 	Focus()	("<div class='preview' style='background: url({DataURL}) no-repeat center center'></div>".replace("{DataURL}", kanvas.toDataURL()))
+											("<div class='axs' style='width: 430px; margin-left: 200px; margin-top: 30px;'>")
+												("<form oninput='oa.value=parseInt(ia.value),om.value=parseInt(im.value),os.value=parseFloat(is.value*im.value).toFixed(1)'>")
+													("<div><output name='oa' for='ia' >100</output><span> A </span> <input type='range' name='ia' min='1' max='200' style='width:200px;' value='100' />200</div>")
+													("<div><output name='om' for='im' >1</output><span> M </span>  <input type='range' name='im' min='-25' max='25' style='width:100px;' value='1'/>25</div>")
+													("<div><output name='os' for='is' >1</output><span> S </span> <input type='range' name='is' min='1.0' max='20.0' style='width:200px;' value='1' step='0.5' />200</div>")
+												("</form>")
+											("</div>")
+											("<div class='close'> X </div>")
+											("<div style='clear:left;'></div>")
+											()
+
 					});
-					config.a = 120;
+					config.a = 100;
+					config.m = 1;
 					config.s = 1;
 					newDiv.source.func = config;
 					configDiv.addChild(newDiv);
 					
-					var range = Focus.createElement({
-						tagName: "input",
-						event: {
-							change: function() {
-								var newSize = this.value;
-								newDiv.setStyle({
-									width: newSize + "px",
-									height: newSize + "px"
-								});
-								newDiv.source.func.a = (0.6*this.value).toFixed(2);
-							}
-						},
-						style: {
-							position: "absolute",
-							left: "50%",
-							top: "20px",
-							width: "100px",
-							margin: "auto -50px"
-						},
-						attribute: {
-							type: "range",
-							min: 120,
-							max: 600,
-							value: 200
+					var ia = Focus.select("input[name=ia]", newDiv.source)[0];
+					Focus(ia).addEvent({
+						change: function() {
+							newDiv.source.func.a = this.value;
 						}
 					});
-
-					var speed = Focus.createElement({
-						tagName: "input",
-						event: {
-							change: function()  {
-								newDiv.source.func.s = (1*this.value).toFixed(2);
-							}
-						},
-						style: {
-							position: "absolute",
-							left: "50%",
-							bottom: "20px",
-							width: "100px",
-							margin: "auto -50px"
-						},
-						attribute: {
-							type: "range",
-							step: 0.1,
-							min: 1,
-							max: 11,
-							value: 1
+					var im = Focus.select("input[name=im]", newDiv.source)[0];
+					Focus(im).addEvent({
+						change: function() {
+							newDiv.source.func.m = this.value || 1;
 						}
 					});
-
-					newDiv.addChild(range);
-					newDiv.addChild(speed);
-
+					var is = Focus.select("input[name=is]", newDiv.source)[0];
+					Focus(is).addEvent({
+						change: function() {
+							newDiv.source.func.s = this.value;
+						}
+					});
+					var close = Focus.select(".close", newDiv.source)[0];
+					Focus(close).addEvent({
+						click: function() {
+							newDiv.source.parentNode.removeChild(newDiv.source);
+						}
+					})
 				}
 
 				function refesh() {
@@ -256,11 +551,10 @@
 				}
 
 				function plot() {
-					var allFunc = Focus("#config-func div");
+					var allFunc = Focus("#config-func .config");
 					var fn = [];
 					allFunc.each(function() {
 						this.func && fn.push(this.func);
-						console.log(this.func);
 					});
 					if (fn.length) {
 						var kanvas = Focus(".result").list[0];
@@ -269,21 +563,20 @@
 						context.lineWidth = 2;
 						context.translate(300, 300);
 						context.strokeStyle = "red";
-						
 						context.beginPath();
 
 						var t = 0, c = 2*Math.PI;
 						function running() {
 							if (t > c) clearInterval(timer);
 							t += 0.001;
-							
-							var f, x = 0, y = 0;
+
+							var f, x = 0, y = 0, dx = 0, dy = 0;
 							
 							for (var i = 0; i < fn.length; ++i) {
 								
 								f = fn[i];
-								x += (f.a/60)*f.x(c * t * f.s);
-								y += (f.a/60)*f.y(c * t * f.s);
+								x += (f.a/30) * f.x(c * t * f.s * f.m).toFixed(2);
+								y += (f.a/30) * f.y(c * t * f.s * f.m).toFixed(2);
 								
 							}
 							context.lineTo(x, y);

@@ -6,6 +6,7 @@
 		var f = window[F_NAME],
 			copy = f.callFunction('copy'),
 			assert = f.callFunction('assert'),
+			select = f.callFunction('select'),
 			currentWindow = f.getWindow(),
 			currentDocument = currentWindow.document;
 		
@@ -138,17 +139,17 @@
 				}
 				return currentDocument.body.clientWidth;
 			},
-			addEvent: function(obj, evt) {
+			addEvent: function(element, evt) {
 				for (var o in evt) {
 					if (evt.hasOwnProperty(o)) {
-						if (obj.addEventListener) {
-							obj.addEventListener(o, evt[o], false);
-						} else if (obj.attachEvent) {
-							obj.attachEvent("on" + o, evt[o]);
+						if (element.addEventListener) {
+							element.addEventListener(o, evt[o], false);
+						} else if (element.attachEvent) {
+							element.attachEvent("on" + o, evt[o]);
 						}
 					}
 				}
-				return f(obj);
+				return f(element);
 			},
 			getTime: function() {
 				return new Date().getTime();
@@ -235,16 +236,10 @@
 				this.source = this.source.replace(/^\s+|\s+$/g, "");
 				return (opt === true) ? this.source : this;
 			},
-			urlEncode: function(opt) {
-				return (opt === true) ? encodeURIComponent(this.source) : this;
-			},
-			urlDecode: function(opt) {
-				return (opt === true) ? decodeURIComponent(this.source) : this;
-			},
 			toRGB: function(opt) {
 				/*
 					Convert text color to rgb value.
-					example : Focus("green").toColor(true);
+					example : Focus("green").toRGB(true);
 					return: rgb(0, 128, 0);
 				*/
 				var colorName = this.source;
@@ -268,6 +263,12 @@
 				this.source = value;
 				return (opt === true) ? this.source : this;
 			},
+			urlEncode: function(opt) {
+				return (opt === true) ? encodeURIComponent(this.source) : this;
+			},
+			urlDecode: function(opt) {
+				return (opt === true) ? decodeURIComponent(this.source) : this;
+			},
 			typeofStyle: function() {
 				var style = this.source;
 				switch (style) {
@@ -287,6 +288,25 @@
 		f(string).addTo("string");
 		
 		var html = {
+			select: function(selection) {
+				if (!arguments.length) {
+					return this.list;
+				} else {
+					var i = 0, aE = [], list = [];
+					// for detect nodelist;
+					function NodeList() {};
+					aE.constructor = NodeList;
+					this.each(function() {
+						list = select(selection, this);
+						if (list && list.length) {
+							for(i = 0; i < list.length; ++i) {
+								aE.push(list[i]);
+							}
+						}
+					});
+					return f(aE);
+				}
+			},
 			appendTo: function(element) {
 				this.each(function() {
 					assert(element).isElement() && element.appendChild(this);

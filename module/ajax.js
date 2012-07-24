@@ -6,44 +6,33 @@
 			currentWindow = f.getWindow(),
 			currentDocument = currentWindow.document;
 		
-		function isReady(XHR) {
-			return (XHR.readyState % 4 == 0);
+		function isReady(xhr) {
+			return (xhr.readyState % 4 == 0);
 		}
 		
-		function isRequest(XHR) {
-			return XHR.readyState < 4;
+		function isRequest(xhr) {
+			return xhr.readyState < 4;
 		}
 		
-		function isComplete(XHR) {
-			return XHR.readyState == 4;
+		function isComplete(xhr) {
+			return xhr.readyState == 4;
 		}
 		
-		function isSuccess(XHR) {
+		function isSuccess(xhr) {
 			try {
-				return XHR.status == 200;
+				return xhr.status == 200;
 			} catch(e) {
 				return false;
 			}
 		}
 		
 		function onProcess(func, xhr) {
-			if (func instanceof Function) {
+			if (f(func).isFunction()) {
 				func.call(xhr);
 			} else {
 				eval(xhr);
 			}
 		}
-		
-		function encode(s) {
-			if (s === null || s == undefined) {
-				s = "|";
-			}
-			var l = s.length, a = [];
-			for (var i = 0; i < l; ++ i) {
-				a.push(s.charCodeAt(i));
-			}
-			return a.join("");
-		};
 		
 		function createXMLHttpRequest() {
 			if (window.ActiveXObject) {
@@ -96,9 +85,9 @@
 					}
 				}
 				
-				function onStateChange(XHR) {
-					if (isSuccess(XHR)) {
-						onProcess(setting.onSuccess, XHR);
+				function onStateChange(x) {
+					if (isSuccess(x)) {
+						onProcess(setting.onSuccess, x);
 					} else {
 						if (setting.retry) {
 							option.delay += option.delay;
@@ -110,7 +99,7 @@
 								setting.delay
 							);
 						} else {
-							onProcess(setting.onFailure, XHR);
+							onProcess(setting.onFailure, x);
 						}
 					}
 					delete xhr.onreadystatechange;

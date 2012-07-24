@@ -1,9 +1,8 @@
 
 
 	/**
-	 * Created by Minh Nguyen (http://vnjs.net);
+	 * Created by Minh Nguyen;
 	 * Version: 1.0;
-	 * License: GPL license;
 	 * Email: mnx2012@gmail.com;
 	 */
 	
@@ -71,9 +70,9 @@
 					return (isExists(src) && src instanceof Function);	
 				},
 				
-				isList: function() {
-					var src = this.source;
-					return (this.isArray() || this.isObject() && src.length);
+				isNodeList: function() {
+					var src = isExists(this.source) ? String(this.source.constructor) : "";
+					return (src != src.replace("NodeList", ""));
 				},
 				
 				isNumber: function() {
@@ -253,12 +252,17 @@
 				},
 				html: {
 					filter: function(data) {
-						if (assert(data).isElement()) {
+						if (assert(data).isNodeList()) {
+							temporary.list = data;
+							return true;
+						} else if (assert(data).isElement()) {
 							temporary.list = [data];
 							return true;
 						} else if (assert(data).isString()) {
 							temporary.list = select(data);
-							if (temporary.list) return true;
+							if (temporary.list) {
+								return true;
+							}
 						}
 						return false;
 					},
@@ -270,11 +274,6 @@
 							}
 						}
 						return this;
-					}
-				},
-				list: {
-					filter: function(data) {
-						return assert(data).isList();
 					}
 				},
 				number: {
