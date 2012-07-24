@@ -860,10 +860,10 @@
 				this.source = value;
 				return (opt === true) ? this.source : this;
 			},
-			urlEncode: function(opt) {
+			encode: function(opt) {
 				return (opt === true) ? encodeURIComponent(this.source) : this;
 			},
-			urlDecode: function(opt) {
+			decode: function(opt) {
 				return (opt === true) ? decodeURIComponent(this.source) : this;
 			},
 			typeofStyle: function() {
@@ -904,9 +904,18 @@
 					return f(aE);
 				}
 			},
-			appendTo: function(element) {
+			appendTo: function(list) {
 				this.each(function() {
-					assert(element).isElement() && element.appendChild(this);
+					var src = this;
+					var i = 0;
+					f(list).each(function() {
+						if (i > 0) {
+							this.appendChild(src.cloneNode(true));
+						} else {
+							this.appendChild(src);
+						}
+						++ i;
+					});
 				});
 				return this;
 			},
@@ -1075,6 +1084,12 @@
 			    });
 			    return this;
 			},
+			remove: function() {
+				this.each(function() {
+					var parent = this.parentNode;
+					parent && parent.removeChild(this); 
+				});
+			},
 			submit: function(callback) {
 			    this.each(function() {
 				    if (this.tagName == "FORM") {
@@ -1094,7 +1109,7 @@
 						if (assert(child).isElement()) {
 							this.appendChild(child);
 						} else if (assert(child.source).isElement()) {
-							// only apply for this library;
+							// apply for this library;
 							this.appendChild(child.source);
 						}
 					}	
