@@ -461,7 +461,7 @@
 								width: "100px",
 								height: "100px"
 							}
-						}).appendTo(groupFunc.list[0]);
+						}).appendTo(groupFunc);
 						
 						var context = kanvas.source.getContext("2d");
 						context.lineWidth = 2;
@@ -489,7 +489,7 @@
 
 				function createConfigFunc(config, kanvas) {
 					var configDiv = Focus("#config-func");
-					//"url(" + kanvas.toDataURL() + ") no-repeat center center"
+					
 					var newDiv = Focus.createElement({
 						className: "config",
 						tagName: "div",
