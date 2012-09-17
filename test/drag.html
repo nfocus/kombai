@@ -16,8 +16,9 @@
 		<script type="text/javascript"> 
 			
 			Focus("#kombai").setDragable({
+				proxy: Focus("#swipe").select()[0],
 				start: function() {
-					window["console"] && console.log("start");
+					window["console"] && console.log(this);
 				},
 				move: function() {
 					window["console"] && console.log("move");

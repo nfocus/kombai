@@ -68,7 +68,6 @@
 					function mouseDown(event) {
 						var evt = event || window.event;
 						evt.stopPropagation();
-		
 						if (evt.touches && evt.touches.length) {
 							touch = true;
 							evt = evt.changedTouches[0];
@@ -136,7 +135,7 @@
 						f.removeEvent(currentDocument, { mousemove: mouseMove, touchmove: mouseMove });
 					};
 					
-					f.addEvent(ele, {mousedown: mouseDown});
+					f.addEvent(this, {mousedown: mouseDown});
 					
 					ignoreDagDrop(this);	
 				});
