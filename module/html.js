@@ -448,6 +448,12 @@
 				});
 				return this;
 			},
+			removeEvent: function(evt) {
+				this.each(function() {
+					f.removeEvent(this, evt);
+				});
+				return this;
+			},
 			toggle: function(callback) {
 				this.each(function() {
 					if (this.style.display == "none") {
