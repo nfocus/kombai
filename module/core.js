@@ -103,7 +103,7 @@
 					return (isExists(src) && 3 == src.nodeType);
 				},
 				
-				// using for test case;
+				// using for test;
 				equal: function(expect, message) {
 					if (this.source != expect) {
 						message != null && notify.push({result: "fail", message: message});
@@ -374,6 +374,7 @@
 			getSelfName: function() {
 				return F_NAME;
 			},
+			// working with iframe;
 			getWindow: function() {
 				return currentWindow;
 			},
@@ -384,6 +385,7 @@
 				currentWindow = win;
 				currentDocument = win.document;
 			},
+			//working with test;
 			clearNotify: function() {
 				notify = [];
 				return this;
@@ -424,6 +426,7 @@
 			if (!factory[clazz]) {
 				// create new constructure;
 				factory[clazz] = function(src) {
+					// store input object;
 					this.source = src;
 				};
 				// add interface for new class;
