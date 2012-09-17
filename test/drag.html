@@ -1,0 +1,40 @@
+﻿<!DOCTYPE html>
+<html>
+	<head> 
+		<title>test drag module</title> 
+		<meta content="text/html; charset=utf-8" http-equiv="content-type"> 
+		<script type="text/javascript" src="../module/core.js"></script>
+		<script type="text/javascript" src="../module/html.js"></script>
+		<script type="text/javascript" src="../module/drag.js"></script>
+	</head> 
+	<body> 
+		<div id="kombai" style="width: 100%; text-align: center; background: orange;">
+			<input type="text" value="test" />
+			<div>Created by Minh Nguyen. Email: mnx2012@gmail.com</div> 
+		</div>
+		<div id="swipe" style="width: 100%; height: 600px; background: #abcdef;"></div>
+		<script type="text/javascript"> 
+			
+			Focus("#kombai").setDragable({
+				start: function() {
+					window["console"] && console.log("start");
+				},
+				move: function() {
+					window["console"] && console.log("move");
+				},
+				end: function() {
+					window["console"] && console.log("end");
+				}
+			});
+			
+			Focus("#swipe").swipe({
+				move: function(event, direct, distance, tracker) {
+					console.log(direct);
+				},
+				end: function(event, direct, distance, tracker) {
+					//window["console"] && console.log(distance);
+				}
+			});
+		</script> 
+	</body> 
+</html>

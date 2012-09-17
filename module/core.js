@@ -354,6 +354,9 @@
 			getNumber: function() {
 				return ++ number;
 			},
+			getTime: function() {
+				return new Date().getTime();
+			},
 			storeObject: function(src, id) {
 				id = assert(id).isExists() ? id : this.getNumber();
 				assert(src).isObject() && (temporary.object[id] = src);

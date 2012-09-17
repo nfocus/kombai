@@ -112,7 +112,7 @@
 					return (isExists(src) && 3 == src.nodeType);
 				},
 				
-				// using for test case;
+				// using for test;
 				equal: function(expect, message) {
 					if (this.source != expect) {
 						message != null && notify.push({result: "fail", message: message});
@@ -363,6 +363,9 @@
 			getNumber: function() {
 				return ++ number;
 			},
+			getTime: function() {
+				return new Date().getTime();
+			},
 			storeObject: function(src, id) {
 				id = assert(id).isExists() ? id : this.getNumber();
 				assert(src).isObject() && (temporary.object[id] = src);
@@ -383,6 +386,7 @@
 			getSelfName: function() {
 				return F_NAME;
 			},
+			// working with iframe;
 			getWindow: function() {
 				return currentWindow;
 			},
@@ -393,6 +397,7 @@
 				currentWindow = win;
 				currentDocument = win.document;
 			},
+			//working with test;
 			clearNotify: function() {
 				notify = [];
 				return this;
@@ -433,6 +438,7 @@
 			if (!factory[clazz]) {
 				// create new constructure;
 				factory[clazz] = function(src) {
+					// store input object;
 					this.source = src;
 				};
 				// add interface for new class;
@@ -743,16 +749,29 @@
 							element.addEventListener(o, evt[o], false);
 						} else if (element.attachEvent) {
 							element.attachEvent("on" + o, evt[o]);
+						} else {
+							element["on" + o] = evt[o];
 						}
 					}
 				}
 				return f(element);
 			},
-			getTime: function() {
-				return new Date().getTime();
+			removeEvent: function(element, evt) {
+				for (var o in evt) {
+					if (evt.hasOwnProperty(o)) {
+						if (element.removeEventListener) {
+							element.removeEventListener(o, evt[o]);
+						} else if (element.detachEvent) {
+							element.detachEvent("on" + o, evt[o]);
+						} else {
+							element["on" + o] = null;
+						}
+					}
+				}
+				return f(element);
 			},
 			createId: function(src) {
-				return f()(src || F_NAME)("-")(this.getNumber())("-")(this.getTime())();
+				return f()(src || F_NAME)("-")(this.getNumber())();
 			},
 			/*
 				Focus.createElement({
@@ -781,7 +800,7 @@
 				
 				var newNode = currentDocument.createElement(setting.tagName);
 					
-				f(setting.event).isObject() && f(newNode).addEvent(setting.event);
+				f(setting.event).isObject() && f.addEvent(newNode, setting.event);
 				
 				f(setting.style).isExists() && f(newNode).setStyle(setting.style);
 				
@@ -1277,170 +1296,196 @@
 			currentWindow = f.getWindow(),
 			currentDocument = currentWindow.document;
 
-		function preventEvent(event) {
-			var evt = event || currentWindow.event;
-			evt.cancelBubble = true;
+		
+		function ignoreDagDrop(ele) {
+			f(ele).select("iframe, form, input, textarea")
+			.each(function() {
+				f.addEvent(this, {
+					mousedown: function(event) {
+						var evt = event || window.event;
+						event.cancelBubble = true;
+						evt.stopPropagation();
+					},
+					touchstart: function(event) {
+						var evt = event || window.event;
+						event.cancelBubble = true;
+						evt.stopPropagation();
+					}
+				});
+			});
 		}
 		
-		function ignoreDagDrop(group) {
-			if (group && group.length) {
-				for (var o = 0; o < group.length; ++o) {
-					group[o].onmousedown = function(event) {
-						var evt = event || currentWindow.event;
-						evt.cancelBubble = true;
-					}
-				}
-			}
-		}
-					
+		var def = {
+			sX: 0, //start clientX;
+			sY: 0, 
+			top: 0,
+			left: 0,
+			proxy: null,
+			lockX: null,
+			lockY: null,
+			end: function() {},
+			move: function() {},
+			start: function() {}
+		};
+		
 		var html = {
 			setDragable: function(config) {
+				var touch = false;
+				var def = {
+					sX: 0, //start clientX;
+					sY: 0, 
+					top: 0,
+					left: 0,
+					proxy: null,
+					lockX: null,
+					lockY: null,
+					end: function() {},
+					move: function() {},
+					start: function() {}
+				};
+				
 				this.each(function() {
-						var ADN = this;
-						var setting = {
-							x: 0,
-							y: 0,
-							proxy: null,
-							lockX: false,
-							lockY: false,
-							onDrag: function() {},
-							onMove: function() {},
-							onDrop: function() {}
-						};
-						
-						copy(config).to(setting);
-						
-						var isTouch = false;
-						var proxy = setting.proxy || ADN;
-						
-						function mouseDown(event) {
-							var evt = event || currentWindow.event;
-							if (evt.touches && evt.touches.length) {
-								isTouch = true;
-								evt = evt.changedTouches[0];
-							}
-							setting.onDrag.call(proxy, evt);
-							if (!(evt.button == 2 || evt.which == 3)) {
-								var position = f(proxy).getStyle("position"),
-									left = f(proxy).getStyle("left"),
-									top = f(proxy).getStyle("top");
-								
-								f(proxy).setStyle({position: (position != "absolute") ? "relative" : "absolute"});
-								!setting.lockX && f(proxy).setStyle({left: parseFloat(left) ? left : "0px"}); 
-								!setting.lockY && f(proxy).setStyle({top: parseFloat(top) ? top : "0px"}); 
-								
-								setting.x = evt.clientX;
-								setting.y = evt.clientY;
-								
-								if (isTouch) {
-									document.ontouchmove = mouseMove;
-									document.ontouchend = mouseUp;
-								} else {
-									document.onmousemove = mouseMove;
-									document.onmouseup = mouseUp;
-								}
-								
-								return false;
-							}
-						};
-						
-								
-						function mouseMove(event) {
-							var evt = event || currentWindow.event;
-							(isTouch == true) && (evt = evt.changedTouches[0]);
-							!setting.lockX && f(proxy).setStyle({left: parseFloat(proxy.style.left) + (evt.clientX - setting.x) + "px"});
-							!setting.lockY && f(proxy).setStyle({top: parseFloat(proxy.style.top) + (evt.clientY - setting.y) + "px"});
-							setting.x = evt.clientX;
-							setting.y = evt.clientY;
-							setting.onMove.call(proxy, evt);
-							return false;
-						};
-						
-						function mouseUp(event) {
-							var evt = event || currentWindow.event;
-							(isTouch == true) && (evt = evt.changedTouches[0]);
-							document.onmousemove = null;
-							document.ontouchmove = null;
-							document.ontouchend = null;
-							document.onmouseup = null;
-							setting.onDrop.call(proxy, evt);
-							return false;
-						};
-						
-						ADN.onmousedown = mouseDown;
-						ADN.ontouchstart = mouseDown;
-						
-						var aForm = ADN.getElementsByTagName("form");
-						if (aForm && aForm.length) {
-							ignoreDagDrop(aForm);
-						} else {
-							var aInput = ADN.getElementsByTagName("input");
-							ignoreDagDrop(aInput);
-							var aIframe = ADN.getElementsByTagName("iframe");
-							ignoreDagDrop(aIframe);
-							var aTextarea = ADN.getElementsByTagName("textarea");
-							ignoreDagDrop(aTextarea);
-						}
-					});
-					return this;
-			},
-			swipe: function(config) {
-				this.each(function() {
-					var ADN = this;
-					var setting = {
-						lockX: false,
-						lockY: false,
-						onStart: function() {},
-						onMove: function() {},
-						onEnd: function() {}
-					}
-					copy(config).to(setting);
-					var isTouch = false;
-
+					var set = copy(config).to(def);
+					var ele = set.proxy || this;
+					var fele = f(ele);
+					
+					var posStyle = fele.getStyle("position");
+					if (posStyle == "fixed") return;
+					posStyle != "absolute" && fele.setStyle({position: "relative"});
+					
 					function mouseDown(event) {
 						var evt = event || window.event;
+						evt.stopPropagation();
+		
 						if (evt.touches && evt.touches.length) {
-							isTouch = true;
+							touch = true;
 							evt = evt.changedTouches[0];
 						}
-						if (ADN.isBusy) return false;
-						
-						setting.onStart.call(ADN, evt);
-						if (!(evt.button == 2 || evt.which == 3)) {
+						set.start.call(ele, evt);
+						if (evt.button != 2 && evt.which != 3) {
+							var pos = {};
+							pos.top = parseInt(ele.style.top) || 0;
+							pos.left = parseInt(ele.style.left) || 0;
 							
-							setting.x = evt.clientX;
-							setting.y = evt.clientY;
+							set.sX = evt.clientX;
+							set.sY = evt.clientY;
+							set.top = pos.top;
+							set.left = pos.left;
+		
+							fele.setStyle({ top: set.lockY != null ? set.lockY : pos.top + "px" }); 
+							fele.setStyle({ left: set.lockX != null ? set.lockX : pos.left + "px" }); 
 							
-							if (isTouch) {
-								ADN.ontouchmove = mouseMove;
-								document.ontouchend = mouseUp;
-							} else {
-								ADN.onmousemove = mouseMove;
-								document.onmouseup = mouseUp;
-							}
+							f.addEvent(currentDocument, { mouseup: mouseUp, touchend: mouseUp });
+							f.addEvent(currentDocument, { mousemove: mouseMove, touchmove: mouseMove });
+							
 						}
-						return false;
-					}
-								
+					};
+					
 					function mouseMove(event) {
 						var evt = event || window.event;
-						(isTouch == true) && (evt = event.changedTouches[0]);
-						// update new position;
-						if (ADN.updatePosition == true) {
-							ADN.updatePosition = null;
-							setting.x = evt.clientX;
-							setting.y = evt.clientY;
-							return false;
-						}
+						!!touch && (evt = evt.changedTouches[0]);
 						
-						var deltaX = Math.round(setting.x - evt.clientX);
-						var deltaY = Math.round(setting.y - evt.clientY);
-						var tan = 1;
-						if (deltaX != 0) {
-							tan = Math.round(Math.abs(deltaY / deltaX));
+						!set.lockY && fele.setStyle({ top: set.top - (set.sY - evt.clientY) + "px" });
+						!set.lockX && fele.setStyle({ left: set.left - (set.sX - evt.clientX) + "px" });
+						
+						var tracker = {
+							from : {
+								x: set.sX,
+								y: set.sY
+							},
+							to: {
+								x: evt.clientX,
+								y: evt.clientY
+							}
 						}
+						set.move.call(ele, evt, tracker);
+						
+						return false;
+					}
+					
+					function mouseUp(event) {
+						var evt = event || window.event;
+						!!touch && (evt = evt.changedTouches[0]);
+						
+						var tracker = {
+							from : {
+								x: set.sX,
+								y: set.sY
+							},
+							to: {
+								x: evt.clientX,
+								y: evt.clientY
+							}
+						};
+						
+						set.end.call(ele, evt, tracker);
+						
+						f.removeEvent(currentDocument, { mouseup: mouseUp, touchend: mouseUp });
+						f.removeEvent(currentDocument, { mousemove: mouseMove, touchmove: mouseMove });
+					};
+					
+					f.addEvent(ele, {mousedown: mouseDown});
+					
+					ignoreDagDrop(this);	
+				});
+				return this;
+			},
+			swipe: function(config) {
+				var touch = false;
+				var def = {
+					sX: 0, //start clientX;
+					sY: 0, 
+					end: function() {},
+					move: function() {},
+					start: function() {}
+				};
+				
+				this.each(function() {
+					var set = copy(config).to(def);
+					var ele = this;
+					
+					function mouseDown(event) {
+						var evt = event || window.event;
+						evt.stopPropagation();
+		
+						if (evt.touches && evt.touches.length) {
+							touch = true;
+							evt = evt.changedTouches[0];
+						}
+						set.start.call(ele, evt);
+						if (evt.button != 2 && evt.which != 3) {
+							
+							set.sX = evt.clientX;
+							set.sY = evt.clientY;
+							set.direct = 0;
+							set.distance = 0;
+							
+							f.addEvent(ele, { mousemove: mouseMove, touchmove: mouseMove });
+							f.addEvent(currentDocument, { mouseup: mouseUp, touchend: mouseUp });
+						}
+					};
+					
+					function mouseMove(event) {
+						var evt = event || window.event;
+						!!touch && (evt = evt.changedTouches[0]);
+						
+						var deltaX = (set.sX - evt.clientX) ^ 0;
+						var deltaY = (set.sY - evt.clientY) ^ 0;
+						var tan = 1;
+						deltaX != 0 &&	(tan = Math.abs(deltaY/deltaX) ^ 0);
 						var distance = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
-						var direct = null;
+						
+						var tracker = {
+							from : {
+								x: set.sX,
+								y: set.sY
+							},
+							to: {
+								x: evt.clientX,
+								y: evt.clientY
+							}
+						};
+						var direct = Math.atan(tan);
 						/* direct is 
 							0 when move right;
 							45 when move top-right;
@@ -1450,7 +1495,8 @@
 							- 135 when move bottom-left;
 							- 90 when move to down;
 							- 45 when move to bottom-right;
-						*/ 
+						*/
+						
 						if (deltaX < 0 && tan <= 0.5) {
 							direct = 0;
 						} else if(deltaX < 0 && deltaY > 0 && tan > 0.5 && tan < 2) {
@@ -1469,37 +1515,33 @@
 							direct = -45;
 						}
 						
-						setting.direct = direct;
-						setting.distance = distance;
-						setting.onMove.call(ADN, evt, direct, distance);
-						return false;
+						set.direct = direct;
+						set.distance = distance;
+						set.move.call(ele, evt, direct, distance, tracker);
 					}
 					
 					function mouseUp(event) {
 						var evt = event || window.event;
-						(isTouch == true) && (evt = event.changedTouches[0]);
-						ADN.onmousemove = null;
-						ADN.ontouchmove = null;
-						document.onmouseup = null;
-						document.ontouchend = null;
-						setting.onEnd.call(ADN, evt, setting.direct, setting.distance);
-						return false;
+						!!touch && (evt = evt.changedTouches[0]);
+						
+						var tracker = {
+							from : {
+								x: set.sX,
+								y: set.sY
+							},
+							to: {
+								x: evt.clientX,
+								y: evt.clientY
+							}
+						};
+						
+						set.end.call(ele, evt, set.direct, set.distance, tracker);
+						
+						f.removeEvent(ele, { mousemove: mouseMove, touchmove: mouseMove });
+						f.removeEvent(currentDocument, { mouseup: mouseUp, touchend: mouseUp });
 					}
 					
-					ADN.onmousedown = mouseDown;
-					ADN.ontouchstart = mouseDown;
-					
-					var aForm = ADN.getElementsByTagName("form");
-					if (aForm && aForm.length) {
-						ignoreDagDrop(aForm);
-					} else {
-						var aInput = ADN.getElementsByTagName("input");
-						ignoreDagDrop(aInput);
-						var aIframe = ADN.getElementsByTagName("iframe");
-						ignoreDagDrop(aIframe);
-						var aTextarea = ADN.getElementsByTagName("textarea");
-						ignoreDagDrop(aTextarea);
-					}
+					f.addEvent(ele, {mousedown: mouseDown});
 				});
 				
 				return this;

@@ -5,7 +5,7 @@
 		"module/core.js",
 		"module/ajax.js",
 		"module/html.js",
-		"module/dragdrop.js",
+		"module/drag.js",
 		"module/canvas.js",
 		"module/transform.js",
 		"plugin/debug.js"
@@ -15,7 +15,7 @@
 		"module/core.js",
 		"module/ajax.js",
 		"module/html.js",
-		"module/dragdrop.js"
+		"module/drag.js"
 	);
 	
 	$content = "";

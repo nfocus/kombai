@@ -146,16 +146,29 @@
 							element.addEventListener(o, evt[o], false);
 						} else if (element.attachEvent) {
 							element.attachEvent("on" + o, evt[o]);
+						} else {
+							element["on" + o] = evt[o];
 						}
 					}
 				}
 				return f(element);
 			},
-			getTime: function() {
-				return new Date().getTime();
+			removeEvent: function(element, evt) {
+				for (var o in evt) {
+					if (evt.hasOwnProperty(o)) {
+						if (element.removeEventListener) {
+							element.removeEventListener(o, evt[o]);
+						} else if (element.detachEvent) {
+							element.detachEvent("on" + o, evt[o]);
+						} else {
+							element["on" + o] = null;
+						}
+					}
+				}
+				return f(element);
 			},
 			createId: function(src) {
-				return f()(src || F_NAME)("-")(this.getNumber())("-")(this.getTime())();
+				return f()(src || F_NAME)("-")(this.getNumber())();
 			},
 			/*
 				Focus.createElement({
@@ -184,7 +197,7 @@
 				
 				var newNode = currentDocument.createElement(setting.tagName);
 					
-				f(setting.event).isObject() && f(newNode).addEvent(setting.event);
+				f(setting.event).isObject() && f.addEvent(newNode, setting.event);
 				
 				f(setting.style).isExists() && f(newNode).setStyle(setting.style);
 				
