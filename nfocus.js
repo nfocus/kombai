@@ -1321,19 +1321,6 @@
 			});
 		}
 		
-		var def = {
-			sX: 0, //start clientX;
-			sY: 0, 
-			top: 0,
-			left: 0,
-			proxy: null,
-			lockX: null,
-			lockY: null,
-			end: function() {},
-			move: function() {},
-			start: function() {}
-		};
-		
 		var html = {
 			setDragable: function(config) {
 				var touch = false;
