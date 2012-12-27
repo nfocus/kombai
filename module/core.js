@@ -22,6 +22,7 @@
 		}
 		
 		var notify = [], number = 0;
+		
 		// Check type of object.
 		function assert(data) {
 			
