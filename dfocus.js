@@ -2120,6 +2120,7 @@
 		
 		var publicity = {
 				transform: function(r) {
+					alert(23);
 					this.each(function(){
 						var	styleName = ["background", "backgroundColor", "backgroundImage", "backgroundPosition", "backgroundRepeat", "bottom", "clip", "color", "font", "fontSize", "height", "left", "letterSpacing", "lineHeight", "listStyleImage", "listStylePosition", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft", "opacity", "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "right", "top", "width", "wordSpacing", "zIndex"];
 						var setting = {

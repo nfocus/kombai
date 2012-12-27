@@ -1,8 +1,7 @@
 <html>
 	<head>
-		<title>canvas demo.</title>
+		<title>canvas demo</title>
 		<meta content="text/html; charset=utf-8" http-equiv="content-type">
-		<meta content="auto complete, suggestion" name="description">
 		<script type="text/javascript" src="../dfocus.js"></script>
 		<style type="text/css">
 			html, body {
@@ -21,7 +20,7 @@
 				</canvas>
 				<canvas id="fly" width="20px" height="20px">
 				</canvas>
-				<div>Created by Kombai Team.</div>
+				<div>Created by Minh Nguyen</div>
 			</div>
 			<script type="text/javascript">
 			
@@ -37,7 +36,7 @@
 				var root = Focus('#kan').getXY();
 				
 				Focus("#fly").setDragable({
-					onMove: function() {
+					move: function() {
 						var self = this;
 						var lastPoint = {
 							x: parseFloat(self.style.left) - root.x - 4,
