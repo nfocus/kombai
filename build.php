@@ -11,7 +11,7 @@
 		"plugin/debug.js"
 	);
 	
-	$nfocus = array(
+	$focus = array(
 		"module/core.js",
 		"module/ajax.js",
 		"module/html.js",
@@ -29,12 +29,17 @@
 	
 	$content = "";
 	
-	foreach($nfocus as $file) {
-		$content .= "\n\n\n\n\n\n\n\n\n";
+	foreach($focus as $file) {
 		$content .= System::getTextContent("$file");
 	}
 	
-	System::putContentFile("nfocus.js", $content);
+	$content = preg_replace('/\/\/(.*)\n/im', " ", $content);
+
+	$content = preg_replace('/\/\*([^\*])*\*\//i', " ", $content);
+
+	$content = preg_replace('/\s+|\n|\f|\t|\r/i', " ", $content);
+
+	System::putContentFile("focus.js", $content);
 	
 	echo $content;
 ?>

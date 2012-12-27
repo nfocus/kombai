@@ -285,7 +285,7 @@
 						return assert(data).isObject();
 					},
 					/*
-					 *	append methods, properties of an object to exists module;
+						append methods, properties of an object to exists module;
 						example: 
 							Focus({a: 'b', c: 'd', d: function(){}}).addTo('utility');
 					*/

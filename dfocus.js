@@ -31,6 +31,7 @@
 		}
 		
 		var notify = [], number = 0;
+		
 		// Check type of object.
 		function assert(data) {
 			
@@ -154,6 +155,7 @@
 		
 		
 		/*
+			append properties of one or more exists object to other object;
 			example: 
 				var a = {
 					x: "x",
@@ -167,6 +169,7 @@
 					}
 				};
 				var c = function(){};
+
 				copy(a, b).to(c);
 		*/
 		
@@ -183,7 +186,7 @@
 									assert(target[o]).isObject() || (target[o] = {});
 									copy(source[o]).to(target[o]);
 								} else {
-									// override.
+									// override;
 									target[o] = source[o];
 								}
 							}
@@ -194,7 +197,7 @@
 			}
 		};
 		
-		// using for html module;
+		// for html module;
 		function select(selection, context) {
 			if (assert(selection).isBlank()) return null;
 			var root = context ? context : currentDocument;
@@ -203,11 +206,7 @@
 				list = root.querySelectorAll(selection);
 			} catch(e) {}
 			
-			if (list && list.length) {
-				return list;
-			} else {
-				return null;
-			}
+			return (list && list.length) ? list : null;
 		}
 		
 		// store temporary data;
@@ -295,7 +294,7 @@
 						return assert(data).isObject();
 					},
 					/*
-					 *	append method, properties of an object to exists module;
+						append methods, properties of an object to exists module;
 						example: 
 							Focus({a: 'b', c: 'd', d: function(){}}).addTo('utility');
 					*/
@@ -336,7 +335,7 @@
 		
 		var utility = {
 			/* 
-				using to caching function
+				for caching functions;
 				example:
 					Focus.storeFunction(function(a, b){alert(a + b)}, "m nguyen");
 					Focus.callFunction("m nguyen")("hello ", "Vietnam");
@@ -788,12 +787,11 @@
 				var setting = {
 					event: null,
 					style: null,
-					attribute: null,
-					
-					tagName: "div",
 					id: null,
+					tagName: "div",
 					className: null,
-					innerHTML: null
+					innerHTML: null,
+					attribute: null
 				};
 				
 				f(config).copyTo(setting);
@@ -1302,7 +1300,7 @@
 			currentWindow = f.getWindow(),
 			currentDocument = currentWindow.document;
 
-		
+		// let some elements have normal behavior;
 		function ignoreDagDrop(ele) {
 			f(ele).select("iframe, form, input, textarea")
 			.each(function() {
@@ -2200,14 +2198,14 @@
 			width: "64%",
 			height: "300px",
 			align: ["left", "right", "middle"][2]
-		},
-		style = {
+		};
+		var style = {
 			borderTop: "1px solid #cccccc",
+			color: "white",
 			top: "0px",
 			width: "64%",
 			margin: "auto",
 			padding: "3px",
-			color: "white",
 			backgroundColor: "black"
 		};
 		// store child object;
@@ -2302,10 +2300,9 @@
 				
 				var src = (setting.viewCover == true) ?
 							this : (this.list && this.list.length) ? this.list : this.source;
-				/* Only show one console,
-					if want to show more obeject,
-						add them in to an array
-							then view this array source.
+				/* 
+					only show one console,
+					if want to show more obeject just add them in to an array then view this array source;
 				*/
 				var consoleId = holdId || f.createId();
 				if (f(holdId).notExists()) {
@@ -2321,7 +2318,7 @@
 						style: {cursor: "default", top: "0px", position: "absolute", fontFamily: "Courier New", left: "0px", width: "100%", fontSize: "12px", height: "0px", zIndex: 999}
 					}).appendTo(currentDocument.body);
 				} else {
-					// Remove content;
+					// remove content;
 					var container = currentDocument.getElementById(consoleId);
 					while (container.firstChild) {
 						container.removeChild(container.firstChild);
@@ -2333,7 +2330,7 @@
 				
 				var title = f.createElement({
 					innerHTML: f()("<div style='float:left;'>")
-									("<span>[ + ]</span>")
+									("<span>[+]</span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(window).viewSource(true);'> window </span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document).viewSource(true);'> | document </span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document.body).viewSource(true);'> | document.body </span>")
