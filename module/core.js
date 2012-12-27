@@ -146,6 +146,7 @@
 		
 		
 		/*
+			append properties of one or more exists object to other object;
 			example: 
 				var a = {
 					x: "x",
@@ -159,6 +160,7 @@
 					}
 				};
 				var c = function(){};
+
 				copy(a, b).to(c);
 		*/
 		
@@ -175,7 +177,7 @@
 									assert(target[o]).isObject() || (target[o] = {});
 									copy(source[o]).to(target[o]);
 								} else {
-									// override.
+									// override;
 									target[o] = source[o];
 								}
 							}
@@ -186,7 +188,7 @@
 			}
 		};
 		
-		// using for html module;
+		// for html module;
 		function select(selection, context) {
 			if (assert(selection).isBlank()) return null;
 			var root = context ? context : currentDocument;
@@ -195,11 +197,7 @@
 				list = root.querySelectorAll(selection);
 			} catch(e) {}
 			
-			if (list && list.length) {
-				return list;
-			} else {
-				return null;
-			}
+			return (list && list.length) ? list : null;
 		}
 		
 		// store temporary data;
@@ -287,7 +285,7 @@
 						return assert(data).isObject();
 					},
 					/*
-					 *	append method, properties of an object to exists module;
+					 *	append methods, properties of an object to exists module;
 						example: 
 							Focus({a: 'b', c: 'd', d: function(){}}).addTo('utility');
 					*/
@@ -328,7 +326,7 @@
 		
 		var utility = {
 			/* 
-				using to caching function
+				for caching functions;
 				example:
 					Focus.storeFunction(function(a, b){alert(a + b)}, "m nguyen");
 					Focus.callFunction("m nguyen")("hello ", "Vietnam");

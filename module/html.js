@@ -185,12 +185,11 @@
 				var setting = {
 					event: null,
 					style: null,
-					attribute: null,
-					
-					tagName: "div",
 					id: null,
+					tagName: "div",
 					className: null,
-					innerHTML: null
+					innerHTML: null,
+					attribute: null
 				};
 				
 				f(config).copyTo(setting);
