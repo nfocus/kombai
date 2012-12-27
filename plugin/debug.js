@@ -17,14 +17,14 @@
 			width: "64%",
 			height: "300px",
 			align: ["left", "right", "middle"][2]
-		},
-		style = {
+		};
+		var style = {
 			borderTop: "1px solid #cccccc",
+			color: "white",
 			top: "0px",
 			width: "64%",
 			margin: "auto",
 			padding: "3px",
-			color: "white",
 			backgroundColor: "black"
 		};
 		// store child object;
@@ -119,10 +119,9 @@
 				
 				var src = (setting.viewCover == true) ?
 							this : (this.list && this.list.length) ? this.list : this.source;
-				/* Only show one console,
-					if want to show more obeject,
-						add them in to an array
-							then view this array source.
+				/* 
+					only show one console,
+					if want to show more obeject just add them in to an array then view this array source;
 				*/
 				var consoleId = holdId || f.createId();
 				if (f(holdId).notExists()) {
@@ -138,7 +137,7 @@
 						style: {cursor: "default", top: "0px", position: "absolute", fontFamily: "Courier New", left: "0px", width: "100%", fontSize: "12px", height: "0px", zIndex: 999}
 					}).appendTo(currentDocument.body);
 				} else {
-					// Remove content;
+					// remove content;
 					var container = currentDocument.getElementById(consoleId);
 					while (container.firstChild) {
 						container.removeChild(container.firstChild);
@@ -150,7 +149,7 @@
 				
 				var title = f.createElement({
 					innerHTML: f()("<div style='float:left;'>")
-									("<span>[ + ]</span>")
+									("<span>[+]</span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(window).viewSource(true);'> window </span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document).viewSource(true);'> | document </span>")
 								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document.body).viewSource(true);'> | document.body </span>")

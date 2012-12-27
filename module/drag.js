@@ -8,7 +8,7 @@
 			currentWindow = f.getWindow(),
 			currentDocument = currentWindow.document;
 
-		
+		// let some elements have normal behavior;
 		function ignoreDagDrop(ele) {
 			f(ele).select("iframe, form, input, textarea")
 			.each(function() {

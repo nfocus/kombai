@@ -1,11 +1,12 @@
 
- // test case module;
+
+// test module;
  
 (function() {
 	   
     var f = window[F_NAME];
 		
-    var publicity = {
+    var utility = {
         
         takeTest: function(testName) {
             
@@ -47,7 +48,7 @@
                 }
                 
                 return report;
-            }
+            };
         }
     }
        
