@@ -23,7 +23,7 @@
 		var currentWindow = window, currentDocument = currentWindow.document;
 			
 		function notExists(obj) {
-			return (obj == null || obj == undefined);
+			return (obj == null);
 		}
 		
 		function isExists(obj) {
@@ -454,8 +454,6 @@
 		};
 		
 		copy(utility).to(finish);
-		
-		!F_NAME && (F_NAME = "F");
 		
 		currentWindow[F_NAME] = finish;
 		
@@ -2120,7 +2118,6 @@
 		
 		var publicity = {
 				transform: function(r) {
-					alert(23);
 					this.each(function(){
 						var	styleName = ["background", "backgroundColor", "backgroundImage", "backgroundPosition", "backgroundRepeat", "bottom", "clip", "color", "font", "fontSize", "height", "left", "letterSpacing", "lineHeight", "listStyleImage", "listStylePosition", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft", "opacity", "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "right", "top", "width", "wordSpacing", "zIndex"];
 						var setting = {

@@ -14,7 +14,7 @@
 		var currentWindow = window, currentDocument = currentWindow.document;
 			
 		function notExists(obj) {
-			return (obj == null || obj == undefined);
+			return (obj == null);
 		}
 		
 		function isExists(obj) {
@@ -445,8 +445,6 @@
 		};
 		
 		copy(utility).to(finish);
-		
-		!F_NAME && (F_NAME = "F");
 		
 		currentWindow[F_NAME] = finish;
 		
