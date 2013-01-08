@@ -6,7 +6,6 @@
 		var f = window[F_NAME],
 			copy = f.callFunction('copy'),
 			assert = f.callFunction('assert'),
-			select = f.callFunction('select'),
 			currentWindow = f.getWindow(),
 			currentDocument = currentWindow.document;
 		
@@ -88,7 +87,7 @@
 			},
 			
 			isMobile: function() {
-				return isExists(currentWindow.onorientationchange);
+				return assert(currentWindow.onorientationchange).isExists();
 			},
 			
 			isAndroid: function() {
@@ -196,11 +195,11 @@
 				
 				var newNode = currentDocument.createElement(setting.tagName);
 					
-				f(setting.event).isObject() && f.addEvent(newNode, setting.event);
+				assert(setting.event).isObject() && f.addEvent(newNode, setting.event);
 				
-				f(setting.style).isExists() && f(newNode).setStyle(setting.style);
+				assert(setting.style).isExists() && f(newNode).setStyle(setting.style);
 				
-				if (f(setting.attribute).isExists()) {
+				if (assert(setting.attribute).isExists()) {
 					for (var o in setting.attribute) {
 						if (setting.attribute.hasOwnProperty(o)) {
 							newNode.setAttribute(o.toString(), setting.attribute[o]);
@@ -208,28 +207,29 @@
 					}
 				}
 				
-				f(setting.id).isExists() && (newNode.id = setting.id);
+				assert(setting.id).isExists() && (newNode.id = setting.id);
 				
-				f(setting.innerHTML).isExists() && (newNode.innerHTML = setting.innerHTML);
+				assert(setting.innerHTML).isExists() && (newNode.innerHTML = setting.innerHTML);
 									
-				f(setting.className).isExists() && (newNode.className = setting.className);
+				assert(setting.className).isExists() && (newNode.className = setting.className);
 				
 				return f(newNode);
 			},
-			loadScript: function(path) {
-				var	body = currentDocument.body,
-					newScript = null;
-				if (assert(body).notExists()) {	
-					document.write("<" + "script type='text/javascript' src=" + path + "></" + "script" + ">");
-				} else {
-					newScript = f.createElement({
-						tagName: "script",
-						attribute: {
-							src: path,
-							type: "text/javascript"
-						}
-					}).appendTo(body);
-				}
+			loadScript: function(path, callback) {
+				var script = document.createElement('script');
+					script.type = 'text/javascript';
+					script.src = path;
+				var source = document.getElementsByTagName('script')[0], isLoaded = false;
+				
+				script.onload = script.onreadystatechange = function() {
+				    if (!isLoaded && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")) {
+				        isLoaded = true;
+				        assert(callback).isFunction() && callback();
+				        script.onload = script.onreadystatechange = null;
+				    }
+				};
+				
+				source.parentNode.insertBefore(script, source);
 			}
 		};
 		
@@ -264,7 +264,7 @@
 					attribute: {
 						bgColor: colorName
 					}
-				})(),
+				})["source"],
 				value = null,
 				match = null;
 				currentDocument.body.appendChild(table);
@@ -273,6 +273,7 @@
 				match = value.match(/^#(\w{2})(\w{2})(\w{2})/);
 				value = !match ? value : "rgb(" + parseInt(match[1], 16) + ", " + parseInt(match[2], 16) + ", " + parseInt(match[3], 16) + ")";
 				this.source = value;
+				console.log(value);
 				return (opt === true) ? this.source : this;
 			},
 			encode: function(opt) {
@@ -304,10 +305,9 @@
 				if (!arguments.length) {
 					return this.list;
 				} else {
-					var i = 0, aE = [], list = [];
+					var i = 0, aE = [], list = [], select = f.callFunction('select');
 					// for detect nodelist;
-					function NodeList() {};
-					aE.constructor = NodeList;
+					aE.constructor = function NodeList() {};
 					this.each(function() {
 						list = select(selection, this);
 						if (list && list.length) {
@@ -321,8 +321,7 @@
 			},
 			appendTo: function(list) {
 				this.each(function() {
-					var src = this;
-					var i = 0;
+					var src = this, i = 0;
 					f(list).each(function() {
 						if (i > 0) {
 							this.appendChild(src.cloneNode(true));
@@ -390,10 +389,7 @@
 					}
 					aE.push({x: x, y: y});
 				});
-				if (aE.length == 1) {
-					return aE[0];
-				}
-				return aE;
+				return (aE.length == 1) ? aE[0] : aE;
 			},
 			getX: function() {
 				var aE = [];
@@ -405,10 +401,7 @@
 					}
 					aE.push(x);
 				});
-				if (aE.length == 1) {
-					return aE[0];
-				}
-				return aE;
+				return (aE.length == 1) ? aE[0] : aE;
 			},
 			getY: function() {
 				var aE = [];
@@ -420,10 +413,7 @@
 					}
 					aE.push(y);
 				});
-				if (aE.length == 1) {
-					return aE[0];
-				}
-				return aE;
+				return (aE.length == 1) ? aE[0] : aE;
 			},
 			setAttribute: function(attribute) {
 				this.each(function() {
@@ -505,11 +495,13 @@
 			    });
 			    return this;
 			},
-			remove: function() {
+			remove: function(callback) {
 				this.each(function() {
 					var parent = this.parentNode;
-					parent && parent.removeChild(this); 
+					parent && parent.removeChild(this);
+					assert(callback).isFunction() && callback.call(this);
 				});
+				return this;
 			},
 			submit: function(callback) {
 			    this.each(function() {
@@ -521,9 +513,7 @@
 			    return this;
 			},
 			addChild: function() {
-				var child = null,
-					arg = arguments,
-					length = arg.length;
+				var child = null, arg = arguments, length = arg.length;
 				this.each(function() {
 					for (var i = 0; i < length; ++ i) {
 						child = arg[i];
@@ -548,40 +538,31 @@
 				return this;
 			},
 			getHTML: function() {
-				var aV = [];
+				var aE = [];
 				this.each(function() {
 					if (assert(this.value).isExists()) {
-						aV.push(this.value);
+						aE.push(this.value);
 					} else if (assert(this.innerHTML).isExists()) {
-						aV.push(this.innerHTML); 
+						aE.push(this.innerHTML); 
 					}
 				});
-				if (aV.length == 1) {
-					return aV[0];
-				}
-				return aV;
+				return (aE.length == 1) ? aE[0] : aE;
 			},
 			getHeight: function() {
-				var aV = [], height;
+				var aE = [], height;
 				this.each(function() {
 					height = (this.height) ? this.height : this.offsetWidth;
-					aV.push(height);
+					aE.push(height);
 				});
-				if (aV.length == 1) {
-					return aV[0];
-				}
-				return aV;
+				return (aE.length == 1) ? aE[0] : aE;
 			},
 			getWidth: function() {
-				var aV = [], width;
+				var aE = [], width;
 				this.each(function() {
 					width = (this.width) ? this.width : this.offsetWidth;
-					aV.push(width);
+					aE.push(width);
 				});
-				if (aV.length == 1) {
-					return aV[0];
-				}
-				return aV;
+				return (aE.length == 1) ? aE[0] : aE;
 			},
 			getFirstChild: function() {
 				var aE = [], firstChild = null;
@@ -592,10 +573,7 @@
 					}
 					aE.push(firstChild);
 				});
-				if (aE.length == 1) {
-					return f(aE[0]);
-				}
-				return f(aE);
+				return (aE.length == 1) ? f(aE[0]) : f(aE);
 			},
 			getLastChild: function() {
 				var aE = [], lastChild = null;
@@ -606,10 +584,7 @@
 					}
 					aE.push(lastChild);
 				});
-				if (aE.length == 1) {
-					return f(aE[0]);
-				}
-				return f(aE);
+				return (aE.length == 1) ? f(aE[0]) : f(aE);
 			},
 			setOpacity: function(value) {
 				(value < 1) && (value = 100 * value);
@@ -638,7 +613,7 @@
 				return this;
 			},
 			getStyle: function(property) {
-				var aV = [], value, match, type = f(property).typeofStyle();
+				var aE = [], value, match, type = f(property).typeofStyle();
 				this.each(function() {
 					if (this.currentStyle && !f.isOpera()) { 
 						if (type == "opacity") {
@@ -661,12 +636,9 @@
 						default:
 							value = value;
 					}
-					aV.push(value);
+					aE.push(value);
 				});
-				if (aV.length == 1) {
-					return aV[0];
-				}
-				return aV;
+				return (aE.length == 1) ? aE[0] : aE;
 			},
 			removeStyle: function(property) {
 				property = property.replace(/[(A-Z)]/g, function(match){return "-" + match.toLowerCase()});

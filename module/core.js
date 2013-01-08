@@ -107,37 +107,37 @@
 				// using for test;
 				equal: function(expect, message) {
 					if (this.source != expect) {
-						message != null && notify.push({result: "fail", message: message});
+						notify.push({result: "fail", message: message || ""});
 						return false;
 					}
-					message != null && notify.push({result: "pass"});
+					notify.push({result: "pass"});
 					return true;
 				},
 				
 				notEqual: function(expect, message) {
 					if (this.source == expect) {
-						message != null && notify.push({result: "fail", message: message});
+						notify.push({result: "fail", message: message || ""});
 						return false;
 					}
-					message != null && notify.push({result: "pass"});
+					notify.push({result: "pass"});
 					return true;
 				},
 				
 				deepEqual: function(expect, message) {
 					if (this.source !== expect) {
-						message != null && notify.push({result: "fail", message: message});
+						notify.push({result: "fail", message: message || ""});
 						return false;
 					}
-					message != null && notify.push({result: "pass"});
+					notify.push({result: "pass"});
 					return true;
 				},
 				
 				notDeepEqual: function(expect, message) {
 					if (this.source === expect) {
-						message != null && notify.push({result: "fail", message: message});
+						notify.push({result: "fail", message: message || ""});
 						return false;
 					}
-					message != null && notify.push({result: "pass"});
+					notify.push({result: "pass"});
 					return true;
 				}
 				
