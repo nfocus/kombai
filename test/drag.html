@@ -15,7 +15,7 @@
 		<div id="swipe" style="width: 100%; height: 600px; background: #abcdef;"></div>
 		<script type="text/javascript"> 
 			
-			Focus("#kombai").setDragable({
+			Focus("#kombai").drag({
 				proxy: Focus("#swipe").select()[0],
 				start: function() {
 					window["console"] && console.log(this);

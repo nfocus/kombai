@@ -239,7 +239,7 @@
 					}
 				}
 				
-				title.setDragable({proxy: container.source});
+				title.drag({proxy: container.source});
 				content.addChild(discover(src));
 				return this;
 			},

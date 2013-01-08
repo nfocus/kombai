@@ -1318,7 +1318,7 @@
 		}
 		
 		var html = {
-			setDragable: function(config) {
+			drag: function(config) {
 				var touch = false;
 				var def = {
 					sX: 0, //start clientX;
@@ -2418,7 +2418,7 @@
 					}
 				}
 				
-				title.setDragable({proxy: container.source});
+				title.drag({proxy: container.source});
 				content.addChild(discover(src));
 				return this;
 			},
