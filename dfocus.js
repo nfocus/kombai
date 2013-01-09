@@ -875,7 +875,6 @@
 				match = value.match(/^#(\w{2})(\w{2})(\w{2})/);
 				value = !match ? value : "rgb(" + parseInt(match[1], 16) + ", " + parseInt(match[2], 16) + ", " + parseInt(match[3], 16) + ")";
 				this.source = value;
-				console.log(value);
 				return (opt === true) ? this.source : this;
 			},
 			encode: function(opt) {
@@ -1133,7 +1132,7 @@
 				this.each(function() {
 					if (assert(this.value).isExists()) {
 						this.value = html;
-					} else if (f(this.innerHTML).isExists()) {
+					} else if (assert(this.innerHTML).isExists()) {
 						this.innerHTML = html; 
 					}
 				});
@@ -1191,8 +1190,7 @@
 			setOpacity: function(value) {
 				(value < 1) && (value = 100 * value);
 				this.each(function() {
-					(!f.isIE() && (this.style.opacity = value/100))  
-					|| (this.style.filter = "alpha(opacity = value)".replace("value", value));
+					(!f.isIE() && (this.style.opacity = value/100)) || (this.style.filter = "alpha(opacity = value)".replace("value", value));
 				});
 				return this;
 			},
