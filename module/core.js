@@ -7,7 +7,7 @@
 	 */
 	
 
-	var F_NAME = "Focus";
+	var F_NAME = 'Focus';
 
 	(function() {
 		
@@ -24,7 +24,7 @@
 		var notify = [], number = 0;
 		
 		// Check type of object.
-		function assert(data) {
+		function assert (data) {
 			
 			return {
 				source: data,
@@ -186,7 +186,7 @@
 					return target;
 				}
 			}
-		};
+		}
 		
 		// for html module;
 		function select(selection, context) {
@@ -442,7 +442,7 @@
 			temporary.list && (cover.list = temporary.list);
 			temporary.list = null;
 			return cover;
-		};
+		}
 		
 		copy(utility).to(finish);
 		

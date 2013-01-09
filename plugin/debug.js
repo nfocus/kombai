@@ -150,9 +150,9 @@
 				var title = f.createElement({
 					innerHTML: f()("<div style='float:left;'>")
 									("<span>[+]</span>")
-								("<span style='cursor: pointer;' onclick='" + F_NAME + "(window).viewSource(true);'> window </span>")
-								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document).viewSource(true);'> | document </span>")
-								("<span style='cursor: pointer;' onclick='" + F_NAME + "(document.body).viewSource(true);'> | document.body </span>")
+								("<span style='cursor: pointer;' onclick='")(F_NAME)("(window).viewSource(true);'> window </span>")
+								("<span style='cursor: pointer;' onclick='")(F_NAME)("(document).viewSource(true);'> | document </span>")
+								("<span style='cursor: pointer;' onclick='")(F_NAME)("(document.body).viewSource(true);'> | document.body </span>")
 								("</div>")(),
 					style: {padding: "3px 0px 0px 0px", height: "20px"}
 				});
@@ -205,7 +205,7 @@
 							var evt = event || currentWindow.event;
 							evt.cancelBubble = true;
 							textareaValue = textarea.getHTML();
-							textareaValue && eval(textareaValue);
+							textareaValue && Function(textareaValue)();
 						}
 					},
 					style: {position: "absolute", cursor: "pointer", bottom: "-23px", left: "-3px",  padding: "2px 10px", background: "white", color: "black", border: "2px solid green"}
