@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html>
+	<head> 
+		<title>test getstyle method</title> 
+		<meta content="text/html; charset=utf-8" http-equiv="content-type"> 
+		<script type="text/javascript" src="../module/core.js"></script>
+		<script type="text/javascript" src="../module/html.js"></script>
+		<script type="text/javascript" src="../module/drag.js"></script>
+		<script type="text/javascript" src="../plugin/debug.js"></script>
+		<script type="text/javascript" src="../plugin/test-case.js"></script>
+		<style type="text/css">
+			.b1 {
+				color: red;
+				border: 1px dotted orange;
+				padding: 10px 20px;
+			}
+		</style>
+	</head>
+
+	<body> 
+		<div id="kombai" style="width: 100%; text-align: center;"> 
+			<div class="box b1">
+				<div class="child">child 1 </div>
+				<div class="child">child 11 </div>
+			</div>
+			<div class="box b2">
+				<div class="child">child 2</div>
+			</div>
+			<div class="box b3">
+				<div>child 3</div>
+			</div>
+			<div class="box b4">
+				<div class="child">child 4</div>
+			</div>
+			<div class="box b5"></div>
+			
+			<div>Created by Minh Nguyen</div> 
+		</div> 
+		<script type="text/javascript"> 
+			
+			var resultTest = Focus.takeTest("test 'select' method")({
+				select: function() {
+					var value = Focus(".b1").getStyle("padding");
+					Focus(value).equal("10px 20px", "Must have look in getStyle method");
+				}
+			});
+			
+			Focus(resultTest).viewSource();
+		</script> 
+	</body> 
+</html>
